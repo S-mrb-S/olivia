@@ -15,7 +15,7 @@ import (
 
 	"github.com/gookit/color"
 
-	"github.com/S-mrb-S/olivia/global"
+	global "github.com/S-mrb-S/olivia/core"
 )
 
 var neuralNetworksMapContainer = map[string]global.Network{}
