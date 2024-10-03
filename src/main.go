@@ -1,10 +1,10 @@
 package main
 
 /*
-    #include "stdio.h"
-    void wrapPrintf(const char *s) {
-       printf("%s", s);
-    }
+   #include "stdio.h"
+   void wrapPrintf(const char *s) {
+      printf("%s", s);
+   }
 */
 import "C"
 import (
@@ -21,9 +21,8 @@ import (
 var neuralNetworksMapContainer = map[string]global.Network{}
 
 func main() {
-    C.wrapPrintf(C.CString("Hello, World\n"))
+	C.wrapPrintf(C.CString("Hello, World\n"))
 
-	
 	serverPortArg := flag.String("port", "8080", "The port for the API and WebSocket.")
 	localeRetrainArg := flag.String("re-train", "", "The locale(s) to re-train.")
 	flag.Parse()
@@ -34,7 +33,7 @@ func main() {
 	}
 
 	// Print the Olivia ASCII text
-	oliviaASCIIBanner := string(global.FetchFileContent("res/olivia-ascii.txt"))
+	oliviaASCIIBanner := string(global.FetchFileContent("../res/olivia-ascii.txt"))
 	fmt.Println(color.FgLightGreen.Render(oliviaASCIIBanner))
 
 	// Create the authentication token
@@ -62,7 +61,7 @@ func main() {
 func executeModelRetraining(localeRetrainList string) {
 	// Iterate locales by separating them by comma
 	for _, individualLocale := range strings.Split(localeRetrainList, ",") {
-		trainingFilePath := fmt.Sprintf("res/locales/%s/training.json", individualLocale)
+		trainingFilePath := fmt.Sprintf("../res/locales/%s/training.json", individualLocale)
 		deleteError := os.Remove(trainingFilePath)
 
 		if deleteError != nil {

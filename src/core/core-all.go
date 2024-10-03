@@ -19,57 +19,32 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/gorilla/websocket"
-	gocache "github.com/patrickmn/go-cache"
-	"github.com/tebeka/snowball"
-	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/cheggaaa/pb.v1"
-
-	// Import these packages to trigger the init() function
-	// _ "github.com/MehraB832/olivia_core/res/locales/ca"
-
-	// _ "github.com/MehraB832/olivia_core/res/locales/de"
-
-	// _ "github.com/MehraB832/olivia_core/res/locales/el"
-
-	// _ "github.com/MehraB832/olivia_core/res/locales/en"
-
-	// _ "github.com/MehraB832/olivia_core/res/locales/es"
-
-	// _ "github.com/MehraB832/olivia_core/res/locales/fr"
-
-	// _ "github.com/MehraB832/olivia_core/res/locales/it"
-
-	// _ "github.com/MehraB832/olivia_core/res/locales/nl"
-
-	// _ "github.com/MehraB832/olivia_core/res/locales/tr"
-)
-
-import (
-	"strconv"
-)
-
-import (
 	"bufio"
 	"encoding/csv"
-	"io"
-)
-
-import (
 	"errors"
-)
-
-import (
-	"github.com/zmb3/spotify"
-)
-
-import (
+	"io"
 	"io/ioutil"
+	"strconv"
+
+	"github.com/gorilla/websocket"
+	gocache "github.com/patrickmn/go-cache"
+	"github.com/soudy/mathcat"
+	"github.com/tebeka/snowball"
+	"github.com/zmb3/spotify"
+	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/cheggaaa/pb.v1"
+	// Import these packages to trigger the init() function
+	// _ "github.com/MehraB832/olivia_core/../res/locales/ca"
+	// _ "github.com/MehraB832/olivia_core/../res/locales/de"
+	// _ "github.com/MehraB832/olivia_core/../res/locales/el"
+	// _ "github.com/MehraB832/olivia_core/../res/locales/en"
+	// _ "github.com/MehraB832/olivia_core/../res/locales/es"
+	// _ "github.com/MehraB832/olivia_core/../res/locales/fr"
+	// _ "github.com/MehraB832/olivia_core/../res/locales/it"
+	// _ "github.com/MehraB832/olivia_core/../res/locales/nl"
+	// _ "github.com/MehraB832/olivia_core/../res/locales/tr"
 )
 
-import (
-	"github.com/soudy/mathcat"
-)
 /* util folder */
 
 // ----- file.go -----
@@ -102,10 +77,10 @@ type DataPacket struct {
 var cachedDataStore = map[string][]DataPacket{}
 
 // SerializeMessages -> GenerateSerializedMessages
-// GenerateSerializedMessages serializes the content of `res/datasets/messages.json` in JSON
+// GenerateSerializedMessages serializes the content of `../res/datasets/messages.json` in JSON
 func GenerateSerializedMessages(region string) []DataPacket {
 	var parsedData []DataPacket
-	deserializationError := json.Unmarshal(FetchFileContent("res/locales/"+region+"/messages.json"), &parsedData)
+	deserializationError := json.Unmarshal(FetchFileContent("../res/locales/"+region+"/messages.json"), &parsedData)
 	if deserializationError != nil {
 		fmt.Println(deserializationError)
 	}
@@ -136,7 +111,7 @@ func FindMessageByLabel(identifier, region string) DataPacket {
 }
 
 // GetMessage -> SelectRandomMessage
-// SelectRandomMessage retrieves a message tag and returns a random message chosen from res/datasets/messages.json
+// SelectRandomMessage retrieves a message tag and returns a random message chosen from ../res/datasets/messages.json
 func SelectRandomMessage(region, identifier string) string {
 	for _, item := range cachedDataStore[region] {
 		// Find the message with the right tag
@@ -278,11 +253,11 @@ func trainDataMain(locale string) (inputs, outputs [][]float64) {
 	return inputs, outputs
 }
 
-// CreateNeuralNetwork returns a new neural network which is loaded from res/training.json or
+// CreateNeuralNetwork returns a new neural network which is loaded from ../res/training.json or
 // trained from trainDataMain() inputs and targets.
 func CreateNeuralNetwork(locale string, ignoreTrainingFile bool) (neuralNetwork Network) {
 	// Decide if the network is created by the save or is a new one
-	saveFile := "res/locales/" + locale + "/training.json"
+	saveFile := "../res/locales/" + locale + "/training.json"
 
 	_, err := os.Open(saveFile)
 	// Train the model if there is no training file
@@ -292,7 +267,7 @@ func CreateNeuralNetwork(locale string, ignoreTrainingFile bool) (neuralNetwork 
 		neuralNetwork = CreateNetwork(locale, 0.1, inputs, outputs, 50)
 		neuralNetwork.Train(200)
 
-		// Save the neural network in res/training.json
+		// Save the neural network in ../res/training.json
 		neuralNetwork.Save(saveFile)
 	} else {
 		fmt.Printf(
@@ -521,7 +496,7 @@ func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) { // Sock
 func generateReply(request clientRequestMessage) []byte { // Reply -> generateReply, RequestMessage -> clientRequestMessage
 	var responseSentence, responseTag string
 
-	// Send a message from res/datasets/messages.json if it is too long
+	// Send a message from ../res/datasets/messages.json if it is too long
 	if len(request.Content) > 500 {
 		responseTag = "too long"
 		responseSentence = SelectRandomMessage(request.Locale, responseTag) // Keeping SelectRandomMessage as is
@@ -1127,7 +1102,7 @@ func removeStopWords(locale string, words []string) []string {
 	}
 
 	// Read the content of the stopwords file
-	stopWords := string(FetchFileContent("res/locales/" + locale + "/stopwords.txt"))
+	stopWords := string(FetchFileContent("../res/locales/" + locale + "/stopwords.txt"))
 
 	var wordsToRemove []string
 
@@ -1231,7 +1206,7 @@ func GetIntents_l(locale string) []Intent {
 
 // SerializeIntents returns a list of intents retrieved from the given intents file
 func SerializeIntents(locale string) (_intents []Intent) {
-	err := json.Unmarshal(FetchFileContent("res/locales/"+locale+"/intents.json"), &_intents)
+	err := json.Unmarshal(FetchFileContent("../res/locales/"+locale+"/intents.json"), &_intents)
 	if err != nil {
 		panic(err)
 	}
@@ -1274,7 +1249,7 @@ func GetIntentByTag(tag, locale string) Intent {
 // Organize intents with an array of all words, an array with a representative word of each tag
 // and an array of Documents which contains a word list associated with a tag
 func Organize(locale string) (words, classes []string, documents []Document) {
-	// Append the modules intents to the intents from res/datasets/intents.json
+	// Append the modules intents to the intents from ../res/datasets/intents.json
 	intents := append(
 		SerializeIntents(locale),
 		SerializeModulesIntents(locale)...,
@@ -1366,13 +1341,13 @@ func (sentence Sentence) PredictTag(neuralNetwork Network) string {
 }
 
 // RandomizeResponse takes the entry message, the response tag and the token and returns a random
-// message from res/datasets/intents.json where the triggers are applied
+// message from ../res/datasets/intents.json where the triggers are applied
 func RandomizeResponse(locale, entry, tag, token string) (string, string) {
 	if tag == DontUnderstand {
 		return DontUnderstand, SelectRandomMessage(locale, tag)
 	}
 
-	// Append the modules intents to the intents from res/datasets/intents.json
+	// Append the modules intents to the intents from ../res/datasets/intents.json
 	intents := append(SerializeIntents(locale), SerializeModulesIntents(locale)...)
 
 	for _, intent := range intents {
@@ -1441,7 +1416,7 @@ func LogResults(locale, entry string, results []Result) {
 	}
 }
 
-var fileName = "res/authentication.txt"
+var fileName = "../res/authentication.txt"
 
 var authenticationHash []byte
 
@@ -1523,7 +1498,7 @@ func WriteIntents(locale string, intents []Intent) {
 	bytes, _ := json.MarshalIndent(intents, "", "  ")
 
 	// Write it to the file
-	file, err := os.Create("res/locales/" + locale + "/intents.json")
+	file, err := os.Create("../res/locales/" + locale + "/intents.json")
 	if err != nil {
 		panic(err)
 	}
@@ -1728,9 +1703,6 @@ func Exists(tag string) bool {
 	return false
 }
 
-
-
-
 // PatternTranslation are the map of regexs in different languages
 var PatternTranslation = map[string]PatternTranslations{
 	"en": {
@@ -1815,8 +1787,6 @@ func DeleteTimes(locale, sentence string) string {
 	return strings.TrimSpace(sentence)
 }
 
-
-
 // A Rule is a function that takes the given sentence and tries to parse a specific
 // rule to return a date, if not, the date is empty.
 type Rule func(string, string) time.Time
@@ -1827,7 +1797,6 @@ var rules []Rule
 func RegisterRule(rule Rule) {
 	rules = append(rules, rule)
 }
-
 
 const day = time.Hour * 24
 
@@ -2165,9 +2134,6 @@ func RuleTime(sentence string) time.Time {
 	return response
 }
 
-
-
-
 // Country is the serializer of the countries.json file in the res folder
 type Country struct {
 	Name     map[string]string `json:"name"`
@@ -2179,9 +2145,9 @@ type Country struct {
 
 var countries = SerializeCountries()
 
-// SerializeCountries returns a list of countries, serialized from `res/datasets/countries.json`
+// SerializeCountries returns a list of countries, serialized from `../res/datasets/countries.json`
 func SerializeCountries() (countries []Country) {
-	err := json.Unmarshal(FetchFileContent("res/datasets/countries.json"), &countries)
+	err := json.Unmarshal(FetchFileContent("../res/datasets/countries.json"), &countries)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -2210,8 +2176,6 @@ func FindCountry(locale, sentence string) Country {
 	// Returns an empty country if none has been found
 	return Country{}
 }
-
-
 
 // LevenshteinDistance calculates the Levenshtein Distance between two given words and returns it.
 // Please see https://en.wikipedia.org/wiki/Levenshtein_distance.
@@ -2252,8 +2216,6 @@ func LevenshteinContains(sentence, matching string, rate int) bool {
 
 	return false
 }
-
-
 
 // import (
 // 	"regexp"
@@ -2299,9 +2261,7 @@ func FindNumberOfDecimals(locale, entry string) int {
 	return decimalsInt
 }
 
-
-
-// Movie is the serializer from res/datasets/movies.csv
+// Movie is the serializer from ../res/datasets/movies.csv
 type Movie struct {
 	Name   string
 	Genres []string
@@ -2347,9 +2307,9 @@ var (
 	movies = SerializeMovies()
 )
 
-// SerializeMovies retrieves the content of res/datasets/movies.csv and serialize it
+// SerializeMovies retrieves the content of ../res/datasets/movies.csv and serialize it
 func SerializeMovies() (movies []Movie) {
-	path := "res/datasets/movies.csv"
+	path := "../res/datasets/movies.csv"
 	bytes, err := os.Open(path)
 	if err != nil {
 		bytes, _ = os.Open("../" + path)
@@ -2410,7 +2370,6 @@ func FindMoviesGenres(locale, content string) (output []string) {
 
 	return
 }
-
 
 // package language
 
@@ -2511,7 +2470,6 @@ func SearchMusic(locale, sentence string) (music, artist string) {
 	return strings.TrimSpace(music), strings.TrimSpace(artist)
 }
 
-
 // package language
 
 // import (
@@ -2522,9 +2480,9 @@ func SearchMusic(locale, sentence string) (music, artist string) {
 
 var names = SerializeNames()
 
-// SerializeNames retrieves all the names from res/datasets/names.txt and returns an array of names
+// SerializeNames retrieves all the names from ../res/datasets/names.txt and returns an array of names
 func SerializeNames() (names []string) {
-	namesFile := string(FetchFileContent("res/datasets/names.txt"))
+	namesFile := string(FetchFileContent("../res/datasets/names.txt"))
 
 	// Iterate each line of the file
 	names = append(names, strings.Split(strings.TrimSuffix(namesFile, "\n"), "\n")...)
@@ -2543,7 +2501,6 @@ func FindName(sentence string) string {
 
 	return ""
 }
-
 
 // package language
 
@@ -2656,7 +2613,6 @@ func SearchReason(locale, sentence string) string {
 	return strings.Join(response, " ")
 }
 
-
 // package language
 
 // import "regexp"
@@ -2668,7 +2624,6 @@ func SearchTokens(sentence string) []string {
 	// Returns the found token
 	return tokenRegex.FindAllString(sentence, 2)
 }
-
 
 // package spotify
 
@@ -2781,7 +2736,6 @@ func CompleteAuth(w http.ResponseWriter, r *http.Request) {
 	tokenChannel <- token
 }
 
-
 // package start
 
 // import (
@@ -2823,7 +2777,6 @@ func ExecuteModules(token, locale string) {
 		module.Action(token, locale)
 	}
 }
-
 
 // package start
 
@@ -2903,7 +2856,6 @@ func RemoveUserReminder(token string, index int) {
 	})
 }
 
-
 // package modules
 
 const adviceURL = "https://api.adviceslip.com/advice"
@@ -2937,7 +2889,6 @@ func AdvicesReplacer(locale, entry, response, _ string) (string, string) {
 	return AdvicesTag, fmt.Sprintf(response, advice)
 }
 
-
 // package modules
 
 // import (
@@ -2956,7 +2907,7 @@ var AreaTag = "area"
 func AreaReplacer(locale, entry, response, _ string) (string, string) {
 	country := FindCountry(locale, entry)
 
-	// If there isn't a country respond with a message from res/datasets/messages.json
+	// If there isn't a country respond with a message from ../res/datasets/messages.json
 	if country.Currency == "" {
 		responseTag := "no country"
 		return responseTag, SelectRandomMessage(locale, responseTag)
@@ -2964,7 +2915,6 @@ func AreaReplacer(locale, entry, response, _ string) (string, string) {
 
 	return AreaTag, fmt.Sprintf(response, ArticleCountries[locale](country.Name[locale]), country.Area)
 }
-
 
 // package modules
 
@@ -2989,7 +2939,7 @@ var (
 func CapitalReplacer(locale, entry, response, _ string) (string, string) {
 	country := FindCountry(locale, entry)
 
-	// If there isn't a country respond with a message from res/datasets/messages.json
+	// If there isn't a country respond with a message from ../res/datasets/messages.json
 	if country.Currency == "" {
 		responseTag := "no country"
 		return responseTag, SelectRandomMessage(locale, responseTag)
@@ -3022,7 +2972,7 @@ var CurrencyTag = "currency"
 func CurrencyReplacer(locale, entry, response, _ string) (string, string) {
 	country := FindCountry(locale, entry)
 
-	// If there isn't a country respond with a message from res/datasets/messages.json
+	// If there isn't a country respond with a message from ../res/datasets/messages.json
 	if country.Currency == "" {
 		responseTag := "no country"
 		return responseTag, SelectRandomMessage(locale, responseTag)
@@ -3105,7 +3055,7 @@ func MathReplacer(locale, entry, response, _ string) (string, string) {
 	}
 
 	res, err := mathcat.Eval(operation)
-	// If the expression isn't valid reply with a message from res/datasets/messages.json
+	// If the expression isn't valid reply with a message from ../res/datasets/messages.json
 	if err != nil {
 		responseTag := "math not valid"
 		return responseTag, SelectRandomMessage(locale, responseTag)
@@ -3124,9 +3074,6 @@ func MathReplacer(locale, entry, response, _ string) (string, string) {
 
 	return MathTag, fmt.Sprintf(response, result)
 }
-
-
-
 
 // package modulesf
 
@@ -3183,7 +3130,6 @@ func ReplaceContentf(locale, tag, entry, response, token string) (string, string
 	return tag, response
 }
 
-
 // package modules
 
 // import (
@@ -3212,7 +3158,7 @@ var (
 func GenresReplacer(locale, entry, response, token string) (string, string) {
 	genres := FindMoviesGenres(locale, entry)
 
-	// If there is no genres then reply with a message from res/datasets/messages.json
+	// If there is no genres then reply with a message from ../res/datasets/messages.json
 	if len(genres) == 0 {
 		responseTag := "no genres"
 		return responseTag, SelectRandomMessage(locale, responseTag)
@@ -3240,7 +3186,7 @@ func GenresReplacer(locale, entry, response, token string) (string, string) {
 func MovieSearchReplacer(locale, entry, response, token string) (string, string) {
 	genres := FindMoviesGenres(locale, entry)
 
-	// If there is no genres then reply with a message from res/datasets/messages.json
+	// If there is no genres then reply with a message from ../res/datasets/messages.json
 	if len(genres) == 0 {
 		responseTag := "no genres"
 		return responseTag, SelectRandomMessage(locale, responseTag)
@@ -3255,7 +3201,7 @@ func MovieSearchReplacer(locale, entry, response, token string) (string, string)
 // and rating from the genre in the user's information.
 // See modules/modules.go#Module.Replacer() for more details.
 func MovieSearchFromInformationReplacer(locale, _, response, token string) (string, string) {
-	// If there is no genres then reply with a message from res/datasets/messages.json
+	// If there is no genres then reply with a message from ../res/datasets/messages.json
 	genres := RetrieveUserProfile(token).GenrePreferences
 	if len(genres) == 0 {
 		responseTag := "no genres saved"
@@ -3266,7 +3212,6 @@ func MovieSearchFromInformationReplacer(locale, _, response, token string) (stri
 	genresJoined := strings.Join(genres, ", ")
 	return MoviesDataTag, fmt.Sprintf(response, genresJoined, movie.Name, movie.Rating)
 }
-
 
 // package modules
 
@@ -3321,7 +3266,6 @@ func NameSetterReplacer(locale, entry, response, token string) (string, string) 
 	return NameSetterTag, fmt.Sprintf(response, name)
 }
 
-
 // package modules
 
 // import (
@@ -3354,7 +3298,6 @@ func RandomNumberReplacer(locale, entry, response, _ string) (string, string) {
 	randNum := rand.Intn((max - min)) + min
 	return RandomTag, fmt.Sprintf(response, strconv.Itoa(randNum))
 }
-
 
 // package modules
 
@@ -3391,7 +3334,7 @@ func ReminderSetterReplacer(locale, entry, response, token string) (string, stri
 	UpdateUserProfile(token, func(information UserProfile) UserProfile {
 		information.ImportantDates = append(information.ImportantDates, UserReminder{
 			ReminderDetails: reason,
-			ReminderDate:   formattedDate,
+			ReminderDate:    formattedDate,
 		})
 
 		return information
@@ -3424,7 +3367,6 @@ func ReminderGetterReplacer(locale, _, response, token string) (string, string) 
 
 	return ReminderGetterTag, fmt.Sprintf(response, strings.Join(formattedReminders, " "))
 }
-
 
 // package modules
 
@@ -3535,7 +3477,6 @@ func SearchDevice(client spotify.Client, content string) spotify.PlayerDevice {
 
 	return spotify.PlayerDevice{}
 }
-
 
 func init() {
 	RegisterModulesf("en", []Modulef{
