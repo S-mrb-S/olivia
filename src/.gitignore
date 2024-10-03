@@ -17,3 +17,5 @@ generate_model.rb
 .idea/
 vendor
 coverage.txt
+
+dist/
