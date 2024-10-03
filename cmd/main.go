@@ -210,8 +210,8 @@ func logWriter() {
 const (
 	logFileName    = "logfile.log"
 	configFileName = "config.json"
-	defaultPort    = "8080"
-	botName        = "X"
+	defaultPort    = "2006"
+	botName        = "xOlivia"
 	hostName       = "localhost"
 	defaultSsl     = false
 )

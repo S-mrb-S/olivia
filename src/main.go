@@ -19,11 +19,14 @@ import (
 )
 
 var neuralNetworksMapContainer = map[string]global.Network{}
+const (
+	defaultPort    = "2006"
+)
 
 func main() {
 	C.wrapPrintf(C.CString("Hello, World\n"))
 
-	serverPortArg := flag.String("port", "8080", "The port for the API and WebSocket.")
+	serverPortArg := flag.String("port", defaultPort, "The port for the API and WebSocket.")
 	localeRetrainArg := flag.String("re-train", "", "The locale(s) to re-train.")
 	flag.Parse()
 
