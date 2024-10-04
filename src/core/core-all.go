@@ -1,5 +1,7 @@
+// ----- by MRB -----
 package global
 
+// ==================================================
 import (
 	"encoding/json"
 	"fmt"
@@ -33,22 +35,290 @@ import (
 	"github.com/zmb3/spotify"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/cheggaaa/pb.v1"
-	// Import these packages to trigger the init() function
-	// _ "github.com/MehraB832/olivia_core/../res/locales/ca"
-	// _ "github.com/MehraB832/olivia_core/../res/locales/de"
-	// _ "github.com/MehraB832/olivia_core/../res/locales/el"
-	// _ "github.com/MehraB832/olivia_core/../res/locales/en"
-	// _ "github.com/MehraB832/olivia_core/../res/locales/es"
-	// _ "github.com/MehraB832/olivia_core/../res/locales/fr"
-	// _ "github.com/MehraB832/olivia_core/../res/locales/it"
-	// _ "github.com/MehraB832/olivia_core/../res/locales/nl"
-	// _ "github.com/MehraB832/olivia_core/../res/locales/tr"
 )
 
-/* util folder */
+// ==================================================
+// -- Variable --
+var cachedDataStore = map[string][]DataPacket{}
 
-// ----- file.go -----
+// userInformation -> cachedUserData
+var cachedUserData = map[string]UserProfile{}
 
+var (
+	// neuralNetworks -> globalNeuralNetworks
+	// globalNeuralNetworks is a map to hold the neural network instances
+	globalNeuralNetworks map[string]Network
+
+	// cache -> cacheInstance
+	// cacheInstance initializes the cache with a 5-minute lifetime
+	cacheInstance = gocache.New(5*time.Minute, 5*time.Minute)
+)
+
+// upgrader -> websocketUpgrader
+// websocketUpgrader configures the websocket upgrader for handling connections
+var websocketUpgrader = websocket.Upgrader{ // upgrader -> websocketUpgrader
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+var (
+	defaultModules  []Modulef
+	defaultIntents  []Intent
+	defaultMessages []DataPacket
+)
+
+var intents = map[string][]Intent{}
+
+
+var userCache = gocache.New(5*time.Minute, 5*time.Minute)
+
+// DontUnderstand contains the tag for the don't understand messages
+const DontUnderstand = "don't understand"
+
+// Locales is the list of locales's tags and names
+// Please check if the language is supported in https://github.com/tebeka/snowball,
+// if it is please add the correct language name.
+var Locales = []Locale{
+	{
+		Tag:  "en",
+		Name: "english",
+	},
+	// {
+	// 	Tag:  "de",
+	// 	Name: "german",
+	// },
+	// {
+	// 	Tag:  "fr",
+	// 	Name: "french",
+	// },
+	// {
+	// 	Tag:  "es",
+	// 	Name: "spanish",
+	// },
+	// {
+	// 	Tag:  "ca",
+	// 	Name: "catalan",
+	// },
+	// {
+	// 	Tag:  "it",
+	// 	Name: "italian",
+	// },
+	// {
+	// 	Tag:  "tr",
+	// 	Name: "turkish",
+	// },
+	// {
+	// 	Tag:  "nl",
+	// 	Name: "dutch",
+	// },
+	// {
+	// 	Tag:  "el",
+	// 	Name: "greek",
+	// },
+}
+
+
+const jokeURL = "https://official-joke-api.appspot.com/random_joke"
+
+// JokesTag is the intent tag for its module
+var JokesTag = "jokes"
+
+
+var modulesf = map[string][]Modulef{}
+
+
+var (
+	modules []Module
+	message string
+)
+
+// ==================================================
+
+// ==================================================
+// -- Types --
+
+// Message -> DataPacket
+// DataPacket contains the message's tag and its contained matched sentences
+type DataPacket struct {
+	// Tag -> Label
+	Label string `json:"tag"`
+	// Messages -> Content
+	Content []string `json:"messages"`
+}
+
+// Information -> UserProfile
+// UserProfile is the user's information retrieved from the client
+type UserProfile struct {
+	FullName         string         `json:"name"`            // Name -> FullName
+	GenrePreferences []string       `json:"movie_genres"`    // MovieGenres -> GenrePreferences
+	DislikedMovies   []string       `json:"movie_blacklist"` // MovieBlacklist -> DislikedMovies
+	ImportantDates   []UserReminder `json:"reminders"`       // Reminders -> ImportantDates
+	StreamingToken   *oauth2.Token  `json:"spotify_token"`   // SpotifyToken -> StreamingToken
+	StreamingID      string         `json:"spotify_id"`      // SpotifyID -> StreamingID
+	StreamingSecret  string         `json:"spotify_secret"`  // SpotifySecret -> StreamingSecret
+}
+
+// Reminder -> UserReminder
+// A UserReminder is something the user asked to be remembered
+type UserReminder struct {
+	ReminderDetails string `json:"reason"` // Reason -> ReminderDetails
+	ReminderDate    string `json:"date"`   // Date -> ReminderDate
+}
+
+// Dashboard -> DashboardData
+// DashboardData contains the data sent for the dashboard
+type DashboardData struct {
+	NetworkLayers NetworkLayersData `json:"layers"`   // Layers -> NetworkLayers
+	TrainingInfo  TrainingInfoData  `json:"training"` // Training -> TrainingInfo
+}
+
+// Layers -> NetworkLayersData
+// NetworkLayersData contains the data of the network's layers
+type NetworkLayersData struct {
+	InputCount  int `json:"input"`  // InputNodes -> InputCount
+	HiddenCount int `json:"hidden"` // HiddenLayers -> HiddenCount
+	OutputCount int `json:"output"` // OutputNodes -> OutputCount
+}
+
+// Training -> TrainingInfoData
+// TrainingInfoData contains the data related to the training of the network
+type TrainingInfoData struct {
+	LearningRate float64   `json:"rate"`   // Rate -> LearningRate
+	ErrorMetrics []float64 `json:"errors"` // Errors -> ErrorMetrics
+	TrainingTime float64   `json:"time"`   // Time -> TrainingTime
+}
+
+// RequestMessage -> clientRequestMessage
+// RequestMessage is the structure that uses entry connections to chat with the websocket
+type clientRequestMessage struct { // RequestMessage -> clientRequestMessage
+	Type        int         `json:"type"` // 0 for handshakes and 1 for messages
+	Content     string      `json:"content"`
+	Token       string      `json:"user_token"`
+	Locale      string      `json:"locale"`
+	Information UserProfile `json:"information"`
+}
+
+// ResponseMessage -> serverResponseMessage
+// ResponseMessage is the structure used to reply to the user through the websocket
+type serverResponseMessage struct { // ResponseMessage -> serverResponseMessage
+	Content     string      `json:"content"`
+	Tag         string      `json:"tag"`
+	Information UserProfile `json:"information"`
+}
+
+// Derivative -> LayerDerivative
+// LayerDerivative contains the derivatives of `z` and the adjustments
+type LayerDerivative struct { // Derivative -> LayerDerivative
+	Delta      Matrix
+	Adjustment Matrix
+}
+
+// Matrix is an alias for [][]float64
+type Matrix [][]float64
+
+// Network contains the Layers, Weights, Biases of a neural network then the actual output values
+// and the learning rate.
+type Network struct {
+	Layers  []Matrix
+	Weights []Matrix
+	Biases  []Matrix
+	Output  Matrix
+	Rate    float64
+	Errors  []float64
+	Time    float64
+	Locale  string
+}
+
+// LocaleCoverage is the element for the coverage of each language
+type LocaleCoverage struct {
+	Tag      string   `json:"locale_tag"`
+	Language string   `json:"language"`
+	Coverage Coverage `json:"coverage"`
+}
+
+// Coverage is the coverage for a single language which contains the coverage details of each section
+type Coverage struct {
+	Modules  CoverageDetails `json:"modules"`
+	Intents  CoverageDetails `json:"intents"`
+	Messages CoverageDetails `json:"messages"`
+}
+
+// CoverageDetails are the details of items not covered and the coverage percentage
+type CoverageDetails struct {
+	NotCovered []string `json:"not_covered"`
+	Coverage   int      `json:"coverage"`
+}
+
+// Intent is a way to group sentences that mean the same thing and link them with a tag which
+// represents what they mean, some responses that the bot can reply and a context
+type Intent struct {
+	Tag       string   `json:"tag"`
+	Patterns  []string `json:"patterns"`
+	Responses []string `json:"responses"`
+	Context   string   `json:"context"`
+}
+
+// Document is any sentence from the intents' patterns linked with its tag
+type Document struct {
+	Sentence Sentence
+	Tag      string
+}
+
+// A Sentence represents simply a sentence with its content as a string
+type Sentence struct {
+	Locale  string
+	Content string
+}
+
+// Result contains a predicted value with its tag and its value
+type Result struct {
+	Tag   string
+	Value float64
+}
+
+// An Error is what the api replies when an error occurs
+type Error struct {
+	Message string `json:"message"`
+}
+
+// DeleteRequest is for the parameters required to delete an intent via the REST Api
+type DeleteRequest struct {
+	Tag string `json:"tag"`
+}
+
+
+// A Locale is a registered locale in the file
+type Locale struct {
+	Tag  string
+	Name string
+}
+
+
+// Modulef is a structure for dynamic intents with a Tag, some Patterns and Responses and
+// a Replacer function to execute the dynamic changes.
+type Modulef struct {
+	Tag       string
+	Patterns  []string
+	Responses []string
+	Replacer  func(string, string, string, string) (string, string)
+	Context   string
+}
+
+// Joke represents the response from the joke api
+type Joke struct {
+	ID        int64  `json:"id"`
+	Type      string `json:"type"`
+	Setup     string `json:"setup"`
+	Punchline string `json:"punchline"`
+}
+
+// A Module is a module that will be executed when a connection is opened by a user
+type Module struct {
+	Action func(string, string)
+}
+
+// ==================================================
 // FetchFileContent returns the byte array of a file located at the specified path or in the parent directory
 func FetchFileContent(filePath string) (fileContent []byte) {
 	fileContent, readError := os.ReadFile(filePath)
@@ -62,19 +332,6 @@ func FetchFileContent(filePath string) (fileContent []byte) {
 
 	return fileContent
 }
-
-// ----- messages.go -----
-
-// Message -> DataPacket
-// DataPacket contains the message's tag and its contained matched sentences
-type DataPacket struct {
-	// Tag -> Label
-	Label string `json:"tag"`
-	// Messages -> Content
-	Content []string `json:"messages"`
-}
-
-var cachedDataStore = map[string][]DataPacket{}
 
 // SerializeMessages -> GenerateSerializedMessages
 // GenerateSerializedMessages serializes the content of `../res/datasets/messages.json` in JSON
@@ -186,32 +443,6 @@ func SliceIndex(collection []string, searchTerm string) int { // slice -> collec
 	return 0
 }
 
-/* user folder */
-
-// information.go
-
-// Information -> UserProfile
-// UserProfile is the user's information retrieved from the client
-type UserProfile struct {
-	FullName         string         `json:"name"`            // Name -> FullName
-	GenrePreferences []string       `json:"movie_genres"`    // MovieGenres -> GenrePreferences
-	DislikedMovies   []string       `json:"movie_blacklist"` // MovieBlacklist -> DislikedMovies
-	ImportantDates   []UserReminder `json:"reminders"`       // Reminders -> ImportantDates
-	StreamingToken   *oauth2.Token  `json:"spotify_token"`   // SpotifyToken -> StreamingToken
-	StreamingID      string         `json:"spotify_id"`      // SpotifyID -> StreamingID
-	StreamingSecret  string         `json:"spotify_secret"`  // SpotifySecret -> StreamingSecret
-}
-
-// Reminder -> UserReminder
-// A UserReminder is something the user asked to be remembered
-type UserReminder struct {
-	ReminderDetails string `json:"reason"` // Reason -> ReminderDetails
-	ReminderDate    string `json:"date"`   // Date -> ReminderDate
-}
-
-// userInformation -> cachedUserData
-var cachedUserData = map[string]UserProfile{}
-
 // ChangeUserInformation -> UpdateUserProfile
 // UpdateUserProfile requires the token of the user and a function to update the profile,
 // and returns the updated profile.
@@ -283,31 +514,6 @@ func CreateNeuralNetwork(locale string, ignoreTrainingFile bool) (neuralNetwork 
 	return
 }
 
-/* server */
-
-// Dashboard -> DashboardData
-// DashboardData contains the data sent for the dashboard
-type DashboardData struct {
-	NetworkLayers NetworkLayersData `json:"layers"`   // Layers -> NetworkLayers
-	TrainingInfo  TrainingInfoData  `json:"training"` // Training -> TrainingInfo
-}
-
-// Layers -> NetworkLayersData
-// NetworkLayersData contains the data of the network's layers
-type NetworkLayersData struct {
-	InputCount  int `json:"input"`  // InputNodes -> InputCount
-	HiddenCount int `json:"hidden"` // HiddenLayers -> HiddenCount
-	OutputCount int `json:"output"` // OutputNodes -> OutputCount
-}
-
-// Training -> TrainingInfoData
-// TrainingInfoData contains the data related to the training of the network
-type TrainingInfoData struct {
-	LearningRate float64   `json:"rate"`   // Rate -> LearningRate
-	ErrorMetrics []float64 `json:"errors"` // Errors -> ErrorMetrics
-	TrainingTime float64   `json:"time"`   // Time -> TrainingTime
-}
-
 // GetDashboardData -> EncodeDashboardData
 // EncodeDashboardData encodes the json for the dashboard data
 func EncodeDashboardData(w http.ResponseWriter, r *http.Request) { // GetDashboardData -> EncodeDashboardData
@@ -348,16 +554,6 @@ func GetTrainingInfo(locale string) TrainingInfoData { // GetTraining -> GetTrai
 		TrainingTime: globalNeuralNetworks[locale].Time,   // Time -> TrainingTime
 	}
 }
-
-var (
-	// neuralNetworks -> globalNeuralNetworks
-	// globalNeuralNetworks is a map to hold the neural network instances
-	globalNeuralNetworks map[string]Network
-
-	// cache -> cacheInstance
-	// cacheInstance initializes the cache with a 5-minute lifetime
-	cacheInstance = gocache.New(5*time.Minute, 5*time.Minute)
-)
 
 // Serve -> StartServer
 // StartServer initializes the server with the given neural networks and port
@@ -405,32 +601,6 @@ func TrainNeuralNetwork(w http.ResponseWriter, r *http.Request) { // Train -> Tr
 	for locale := range globalNeuralNetworks { // neuralNetworks -> globalNeuralNetworks
 		globalNeuralNetworks[locale] = CreateNeuralNetwork(locale, true)
 	}
-}
-
-// upgrader -> websocketUpgrader
-// websocketUpgrader configures the websocket upgrader for handling connections
-var websocketUpgrader = websocket.Upgrader{ // upgrader -> websocketUpgrader
-	CheckOrigin: func(r *http.Request) bool {
-		return true
-	},
-}
-
-// RequestMessage -> clientRequestMessage
-// RequestMessage is the structure that uses entry connections to chat with the websocket
-type clientRequestMessage struct { // RequestMessage -> clientRequestMessage
-	Type        int         `json:"type"` // 0 for handshakes and 1 for messages
-	Content     string      `json:"content"`
-	Token       string      `json:"user_token"`
-	Locale      string      `json:"locale"`
-	Information UserProfile `json:"information"`
-}
-
-// ResponseMessage -> serverResponseMessage
-// ResponseMessage is the structure used to reply to the user through the websocket
-type serverResponseMessage struct { // ResponseMessage -> serverResponseMessage
-	Content     string      `json:"content"`
-	Tag         string      `json:"tag"`
-	Information UserProfile `json:"information"`
 }
 
 // SocketHandle -> HandleWebSocketConnection
@@ -527,13 +697,6 @@ func generateReply(request clientRequestMessage) []byte { // Reply -> generateRe
 	return bytes
 }
 
-// Derivative -> LayerDerivative
-// LayerDerivative contains the derivatives of `z` and the adjustments
-type LayerDerivative struct { // Derivative -> LayerDerivative
-	Delta      Matrix
-	Adjustment Matrix
-}
-
 // ComputeLastLayerDerivatives -> CalculateFinalLayerDerivatives
 // CalculateFinalLayerDerivatives returns the derivatives of the last layer L
 func (network Network) CalculateFinalLayerDerivatives() LayerDerivative { // ComputeLastLayerDerivatives -> CalculateFinalLayerDerivatives
@@ -612,9 +775,6 @@ func MultipliesByTwo(x float64) float64 {
 func SubtractsOne(x float64) float64 {
 	return x - 1
 }
-
-// Matrix is an alias for [][]float64
-type Matrix [][]float64
 
 // RandomMatrix returns the value of a random matrix of *rows* and *columns* dimensions and
 // where the values are between *lower* and *upper*.
@@ -748,19 +908,6 @@ func ErrorNotSameSize(matrix, matrix2 Matrix) {
 	if Rows(matrix) != Rows(matrix2) && Columns(matrix) != Columns(matrix2) {
 		panic("These two matrices must have the same dimension.")
 	}
-}
-
-// Network contains the Layers, Weights, Biases of a neural network then the actual output values
-// and the learning rate.
-type Network struct {
-	Layers  []Matrix
-	Weights []Matrix
-	Biases  []Matrix
-	Output  Matrix
-	Rate    float64
-	Errors  []float64
-	Time    float64
-	Locale  string
 }
 
 // LoadNetwork returns a Network from a specified file
@@ -939,32 +1086,6 @@ func (network *Network) Train(iterations int) {
 	network.Time = math.Floor(elapsed.Seconds()*100) / 100
 
 	fmt.Printf("The error rate is %s.\n", color.FgGreen.Render(arrangedError))
-}
-
-var (
-	defaultModules  []Modulef
-	defaultIntents  []Intent
-	defaultMessages []DataPacket
-)
-
-// LocaleCoverage is the element for the coverage of each language
-type LocaleCoverage struct {
-	Tag      string   `json:"locale_tag"`
-	Language string   `json:"language"`
-	Coverage Coverage `json:"coverage"`
-}
-
-// Coverage is the coverage for a single language which contains the coverage details of each section
-type Coverage struct {
-	Modules  CoverageDetails `json:"modules"`
-	Intents  CoverageDetails `json:"intents"`
-	Messages CoverageDetails `json:"messages"`
-}
-
-// CoverageDetails are the details of items not covered and the coverage percentage
-type CoverageDetails struct {
-	NotCovered []string `json:"not_covered"`
-	Coverage   int      `json:"coverage"`
 }
 
 // GetCoverage encodes the coverage of each language in json
@@ -1177,23 +1298,6 @@ func (sentence Sentence) WordsBag(words []string) (bag []float64) {
 	return bag
 }
 
-var intents = map[string][]Intent{}
-
-// Intent is a way to group sentences that mean the same thing and link them with a tag which
-// represents what they mean, some responses that the bot can reply and a context
-type Intent struct {
-	Tag       string   `json:"tag"`
-	Patterns  []string `json:"patterns"`
-	Responses []string `json:"responses"`
-	Context   string   `json:"context"`
-}
-
-// Document is any sentence from the intents' patterns linked with its tag
-type Document struct {
-	Sentence Sentence
-	Tag      string
-}
-
 // CacheIntents set the given intents to the global variable intents
 func CacheIntents(locale string, _intents []Intent) {
 	intents[locale] = _intents
@@ -1286,22 +1390,6 @@ func Organize(locale string) (words, classes []string, documents []Document) {
 	return words, classes, documents
 }
 
-// A Sentence represents simply a sentence with its content as a string
-type Sentence struct {
-	Locale  string
-	Content string
-}
-
-// Result contains a predicted value with its tag and its value
-type Result struct {
-	Tag   string
-	Value float64
-}
-
-var userCache = gocache.New(5*time.Minute, 5*time.Minute)
-
-// DontUnderstand contains the tag for the don't understand messages
-const DontUnderstand = "don't understand"
 
 // NewSentence returns a Sentence object where the content has been arranged
 func NewSentence(locale, content string) (sentence Sentence) {
@@ -1480,15 +1568,6 @@ func Authenticate() {
 	authenticationHash = hash
 }
 
-// An Error is what the api replies when an error occurs
-type Error struct {
-	Message string `json:"message"`
-}
-
-// DeleteRequest is for the parameters required to delete an intent via the REST Api
-type DeleteRequest struct {
-	Tag string `json:"tag"`
-}
 
 // WriteIntents writes the given intents to the intents file
 func WriteIntents(locale string, intents []Intent) {
@@ -1616,54 +1695,6 @@ func DeleteIntent(w http.ResponseWriter, r *http.Request) {
 	RemoveIntent(data["locale"], deleteRequest.Tag)
 
 	json.NewEncoder(w).Encode(GetIntents_l(data["locale"]))
-}
-
-// Locales is the list of locales's tags and names
-// Please check if the language is supported in https://github.com/tebeka/snowball,
-// if it is please add the correct language name.
-var Locales = []Locale{
-	{
-		Tag:  "en",
-		Name: "english",
-	},
-	// {
-	// 	Tag:  "de",
-	// 	Name: "german",
-	// },
-	// {
-	// 	Tag:  "fr",
-	// 	Name: "french",
-	// },
-	// {
-	// 	Tag:  "es",
-	// 	Name: "spanish",
-	// },
-	// {
-	// 	Tag:  "ca",
-	// 	Name: "catalan",
-	// },
-	// {
-	// 	Tag:  "it",
-	// 	Name: "italian",
-	// },
-	// {
-	// 	Tag:  "tr",
-	// 	Name: "turkish",
-	// },
-	// {
-	// 	Tag:  "nl",
-	// 	Name: "dutch",
-	// },
-	// {
-	// 	Tag:  "el",
-	// 	Name: "greek",
-	// },
-}
-
-// A Locale is a registered locale in the file
-type Locale struct {
-	Tag  string
-	Name string
 }
 
 // GetNameByTag returns the name of the given locale's tag
@@ -2736,24 +2767,6 @@ func CompleteAuth(w http.ResponseWriter, r *http.Request) {
 	tokenChannel <- token
 }
 
-// package start
-
-// import (
-// 	"fmt"
-
-// 	"github.com/gookit/color"
-// )
-
-// A Module is a module that will be executed when a connection is opened by a user
-type Module struct {
-	Action func(string, string)
-}
-
-var (
-	modules []Module
-	message string
-)
-
 // RegisterModule registers the given module in the array
 func RegisterModule(module Module) {
 	modules = append(modules, module)
@@ -2981,30 +2994,6 @@ func CurrencyReplacer(locale, entry, response, _ string) (string, string) {
 	return CurrencyTag, fmt.Sprintf(response, ArticleCountries[locale](country.Name[locale]), country.Currency)
 }
 
-// package modules
-
-// import (
-// 	"encoding/json"
-// 	"fmt"
-// 	"io/ioutil"
-// 	"net/http"
-
-// 	"github.com/MehraB832/olivia_core/global"
-// )
-
-const jokeURL = "https://official-joke-api.appspot.com/random_joke"
-
-// JokesTag is the intent tag for its module
-var JokesTag = "jokes"
-
-// Joke represents the response from the joke api
-type Joke struct {
-	ID        int64  `json:"id"`
-	Type      string `json:"type"`
-	Setup     string `json:"setup"`
-	Punchline string `json:"punchline"`
-}
-
 // JokesReplacer replaces the pattern contained inside the response by a random joke from the api
 // specified in jokeURL.
 // See modules/modules.go#Module.Replacer() for more details.
@@ -3077,17 +3066,6 @@ func MathReplacer(locale, entry, response, _ string) (string, string) {
 
 // package modulesf
 
-// Modulef is a structure for dynamic intents with a Tag, some Patterns and Responses and
-// a Replacer function to execute the dynamic changes.
-type Modulef struct {
-	Tag       string
-	Patterns  []string
-	Responses []string
-	Replacer  func(string, string, string, string) (string, string)
-	Context   string
-}
-
-var modulesf = map[string][]Modulef{}
 
 // RegisterModulef registers a module into the map
 func RegisterModulef(locale string, module Modulef) {
