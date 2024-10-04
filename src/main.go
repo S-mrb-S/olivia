@@ -1,5 +1,9 @@
+// =================================================================
 package main
 
+// =================================================================
+
+// =================================================================
 import (
 	"flag"
 	"fmt"
@@ -11,12 +15,18 @@ import (
 	olivia "github.com/S-mrb-S/olivia/core"
 )
 
+// =================================================================
+
+// =================================================================
 var neuralNetworksMapContainer = map[string]olivia.Network{}
 
 const (
 	defaultPort = "2006"
 )
 
+// =================================================================
+
+// =================================================================
 func main() {
 	serverPortArg := flag.String("port", defaultPort, "The port for the API and WebSocket.")
 	localeRetrainArg := flag.String("re-train", "", "The locale(s) to re-train.")
@@ -59,3 +69,5 @@ func executeModelRetraining(localeRetrainList string) {
 		}
 	}
 }
+
+// =================================================================

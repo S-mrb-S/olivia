@@ -1,5 +1,9 @@
+// =================================================================
 package main
 
+// =================================================================
+
+// =================================================================
 import (
 	"bufio"
 	"crypto/rand"
@@ -14,6 +18,23 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+// =================================================================
+
+// =================================================================
+const (
+	logFileName    = "logfile.log"
+	configFileName = "config.json"
+	defaultPort    = "2006"
+	botName        = "xOlivia"
+	hostName       = "localhost"
+	defaultSsl     = false
+)
+
+var logChannel = make(chan string, 100) // Buffered channel for logs
+
+// =================================================================
+
+// =================================================================
 type Client struct {
 	Information *map[string]interface{}
 	Locale      string
@@ -37,6 +58,17 @@ type ResponseMessage struct {
 	Information map[string]interface{} `json:"information"`
 }
 
+type Configuration struct {
+	Port      string `json:"port"`
+	Host      string `json:"host"`
+	SSL       bool   `json:"ssl"`
+	BotName   string `json:"bot_name"`
+	UserToken string `json:"user_token"`
+}
+
+// =================================================================
+
+// =================================================================
 func NewClient(host string, ssl bool, information *map[string]interface{}) (*Client, error) {
 	scheme := "ws"
 	if ssl {
@@ -125,14 +157,6 @@ func generateToken() string {
 	return fmt.Sprintf("%x", b)
 }
 
-type Configuration struct {
-	Port      string `json:"port"`
-	Host      string `json:"host"`
-	SSL       bool   `json:"ssl"`
-	BotName   string `json:"bot_name"`
-	UserToken string `json:"user_token"`
-}
-
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
@@ -193,17 +217,6 @@ func logWriter() {
 	}
 }
 
-const (
-	logFileName    = "logfile.log"
-	configFileName = "config.json"
-	defaultPort    = "2006"
-	botName        = "xOlivia"
-	hostName       = "localhost"
-	defaultSsl     = false
-)
-
-var logChannel = make(chan string, 100) // Buffered channel for logs
-
 func main() {
 	// Start log writer goroutine
 	go logWriter()
@@ -233,29 +246,29 @@ func main() {
 		text := scanner.Text()
 
 		switch {
-			case strings.TrimSpace(text) == "":
-				writeLog("Empty message entered")
-				fmt.Println("Please enter a message")
-			case text == "/quit" || text == "/q" || text == ":q":
-				writeLog("Quitting the application")
-				return
-			case strings.HasPrefix(text, "/lang"):
-				arguments := strings.Split(text, " ")[1:]
-				if len(arguments) != 1 {
-					writeLog("Wrong number of arguments for language command")
-					fmt.Println("Wrong number of arguments, language command should contain only the locale")
-				} else {
-					client.Locale = arguments[0]
-					fmt.Printf("Language changed to %s.\n", arguments[0])
-				}
-			default:
-				response, err := client.SendMessage(text)
-				if err == nil {
-					writeLog(fmt.Sprintf("Message sent: %s, Response: %s", text, response.Content))
-					fmt.Printf("%s> %s\n", config.BotName, response.Content)
-				} else {
-					writeLog(fmt.Sprintf("Error sending message: %v", err))
-				}
+		case strings.TrimSpace(text) == "":
+			writeLog("Empty message entered")
+			fmt.Println("Please enter a message")
+		case text == "/quit" || text == "/q" || text == ":q":
+			writeLog("Quitting the application")
+			return
+		case strings.HasPrefix(text, "/lang"):
+			arguments := strings.Split(text, " ")[1:]
+			if len(arguments) != 1 {
+				writeLog("Wrong number of arguments for language command")
+				fmt.Println("Wrong number of arguments, language command should contain only the locale")
+			} else {
+				client.Locale = arguments[0]
+				fmt.Printf("Language changed to %s.\n", arguments[0])
+			}
+		default:
+			response, err := client.SendMessage(text)
+			if err == nil {
+				writeLog(fmt.Sprintf("Message sent: %s, Response: %s", text, response.Content))
+				fmt.Printf("%s> %s\n", config.BotName, response.Content)
+			} else {
+				writeLog(fmt.Sprintf("Error sending message: %v", err))
+			}
 		}
 	}
 }
@@ -271,3 +284,5 @@ func setupGracefulShutdown() {
 		os.Exit(0)
 	}()
 }
+
+// =================================================================
