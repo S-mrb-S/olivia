@@ -1,12 +1,5 @@
 package main
 
-/*
-   #include "stdio.h"
-   void wrapPrintf(const char *s) {
-      printf("%s", s);
-   }
-*/
-import "C"
 import (
 	"flag"
 	"fmt"
@@ -24,8 +17,6 @@ const (
 )
 
 func main() {
-	C.wrapPrintf(C.CString("Hello, World\n"))
-
 	serverPortArg := flag.String("port", defaultPort, "The port for the API and WebSocket.")
 	localeRetrainArg := flag.String("re-train", "", "The locale(s) to re-train.")
 	flag.Parse()
@@ -49,11 +40,6 @@ func main() {
 			individualLocale.Tag,
 			false,
 		)
-	}
-
-	// Get port from environment variables if there is
-	if os.Getenv("PORT") != "" {
-		*serverPortArg = os.Getenv("PORT")
 	}
 
 	// Serves the server
