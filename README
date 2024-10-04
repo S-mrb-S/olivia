@@ -1,7 +1,6 @@
 > Olivia
 
 - ./src -> source project (core AI)
-- ./bin -> execute binary
 - ./cmd -> call with AI from socket (console)
 
 >>>> Forked from https://github.com/olivia-ai
