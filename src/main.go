@@ -8,10 +8,10 @@ import (
 
 	"github.com/gookit/color"
 
-	global "github.com/S-mrb-S/olivia/core"
+	olivia "github.com/S-mrb-S/olivia/core"
 )
 
-var neuralNetworksMapContainer = map[string]global.Network{}
+var neuralNetworksMapContainer = map[string]olivia.Network{}
 const (
 	defaultPort    = "2006"
 )
@@ -27,23 +27,23 @@ func main() {
 	}
 
 	// Print the Olivia ASCII text
-	oliviaASCIIBanner := string(global.FetchFileContent("../res/olivia-ascii.txt"))
+	oliviaASCIIBanner := string(olivia.FetchFileContent("../res/olivia-ascii.txt"))
 	fmt.Println(color.FgLightGreen.Render(oliviaASCIIBanner))
 
 	// Create the authentication token
-	global.Authenticate()
+	olivia.Authenticate()
 
-	for _, individualLocale := range global.Locales {
-		global.GenerateSerializedMessages(individualLocale.Tag)
+	for _, individualLocale := range olivia.Locales {
+		olivia.GenerateSerializedMessages(individualLocale.Tag)
 
-		neuralNetworksMapContainer[individualLocale.Tag] = global.CreateNeuralNetwork(
+		neuralNetworksMapContainer[individualLocale.Tag] = olivia.CreateNeuralNetwork(
 			individualLocale.Tag,
 			false,
 		)
 	}
 
 	// Serves the server
-	global.StartServer(neuralNetworksMapContainer, *serverPortArg)
+	olivia.StartServer(neuralNetworksMapContainer, *serverPortArg)
 }
 
 // executeModelRetraining retrains the given locales

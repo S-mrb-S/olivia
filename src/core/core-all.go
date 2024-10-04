@@ -1,5 +1,5 @@
 // ----- by MRB -----
-package global
+package olivia
 
 // ==================================================
 import (
@@ -2807,17 +2807,6 @@ func ExecuteModules(token, locale string) {
 		module.Action(token, locale)
 	}
 }
-
-// package start
-
-// import (
-// 	"fmt"
-// 	"strings"
-// 	"time"
-
-// 	"github.com/MehraB832/olivia_core/global"
-
-// )
 
 func init() {
 	RegisterModule(Module{
