@@ -1,5 +1,11 @@
+// =================================================================
+// // // // #MRb // // Oct 4 2024 .. .. //
 package olivia
 
+// =================================================================
+
+// =================================================================
+// imports
 import (
 	"encoding/json"
 	"fmt"
@@ -35,6 +41,10 @@ import (
 	"gopkg.in/cheggaaa/pb.v1"
 )
 
+// =================================================================
+
+// =================================================================
+// Variables
 var cachedDataStore = map[string][]DataPacket{}
 
 var cachedUserData = map[string]UserProfile{}
@@ -64,8 +74,6 @@ var (
 var intents = map[string][]Intent{}
 
 var userCache = gocache.New(5*time.Minute, 5*time.Minute)
-
-const DontUnderstand = "don't understand"
 
 var Locales = []Locale{
 	{
@@ -105,8 +113,6 @@ var Locales = []Locale{
 	// 	Name: "greek",
 	// },
 }
-
-const jokeURL = "https://official-joke-api.appspot.com/random_joke"
 
 var JokesTag = "jokes"
 
@@ -246,8 +252,6 @@ var (
 var countries = SerializeCountries()
 
 var rules []Rule
-
-const day = time.Hour * 24
 
 var RuleTranslations = map[string]RuleTranslation{
 	"en": {
@@ -427,8 +431,6 @@ var (
 	auth         spotify.Authenticator
 )
 
-const adviceURL = "https://api.adviceslip.com/advice"
-
 var AdvicesTag = "advices"
 
 var (
@@ -479,6 +481,16 @@ var (
 
 var AreaTag = "area"
 
+// =================================================================
+const adviceURL = "https://api.adviceslip.com/advice"
+const day = time.Hour * 24
+const jokeURL = "https://official-joke-api.appspot.com/random_joke"
+const DontUnderstand = "don't understand"
+
+// =================================================================
+
+// =================================================================
+// Types
 type DataPacket struct {
 	// Tag -> Label
 	Label string `json:"tag"`
@@ -664,6 +676,10 @@ type PatternTranslations struct {
 	TimeRegex string
 }
 
+// =================================================================
+
+// =================================================================
+// Functions
 func FetchFileContent(filePath string) (fileContent []byte) {
 	fileContent, readError := os.ReadFile(filePath)
 	if readError != nil {
@@ -782,8 +798,6 @@ func StoreUserProfile(authToken string, profile UserProfile) { // token -> authT
 func RetrieveUserProfile(authToken string) UserProfile { // token -> authToken
 	return cachedUserData[authToken]
 }
-
-/* training */
 
 func trainDataMain(locale string) (inputs, outputs [][]float64) {
 	words, classes, documents := Organize(locale)
@@ -1145,7 +1159,7 @@ func DotProduct(matrix, matrix2 Matrix) Matrix {
 func Sum(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	ErrorNotSameSize(matrix, matrix2)
 
-	resultMatrix = CreateMatrix(Rows(matrix), Columns(matrix))
+	CreateMatrix(Rows(matrix), Columns(matrix))
 
 	return ApplyFunctionWithIndex(matrix, func(i, j int, x float64) float64 {
 		return matrix[i][j] + matrix2[i][j]
@@ -1155,7 +1169,7 @@ func Sum(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 func Difference(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	ErrorNotSameSize(matrix, matrix2)
 
-	resultMatrix = CreateMatrix(Rows(matrix), Columns(matrix))
+	CreateMatrix(Rows(matrix), Columns(matrix))
 
 	return ApplyFunctionWithIndex(resultMatrix, func(i, j int, x float64) float64 {
 		return matrix[i][j] - matrix2[i][j]
@@ -1165,7 +1179,7 @@ func Difference(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 func Multiplication(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	ErrorNotSameSize(matrix, matrix2)
 
-	resultMatrix = CreateMatrix(Rows(matrix), Columns(matrix))
+	CreateMatrix(Rows(matrix), Columns(matrix))
 
 	return ApplyFunctionWithIndex(matrix, func(i, j int, x float64) float64 {
 		return matrix[i][j] * matrix2[i][j]
@@ -2409,17 +2423,17 @@ func FindRangeLimits(local, entry string) ([]int, error) {
 	limitArr := make([]int, 0)
 
 	if limitStrArr == nil {
-		return make([]int, 0), errors.New("No range")
+		return make([]int, 0), errors.New("no range")
 	}
 
 	if len(limitStrArr) != 2 {
-		return nil, errors.New("Need 2 numbers, a lower and upper limit")
+		return nil, errors.New("need 2 numbers, a lower and upper limit")
 	}
 
 	for _, v := range limitStrArr {
 		num, err := strconv.Atoi(v)
 		if err != nil {
-			return nil, errors.New("Non integer range")
+			return nil, errors.New("non integer range")
 		}
 		limitArr = append(limitArr, num)
 	}
