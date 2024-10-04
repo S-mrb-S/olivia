@@ -12,8 +12,9 @@ import (
 )
 
 var neuralNetworksMapContainer = map[string]olivia.Network{}
+
 const (
-	defaultPort    = "2006"
+	defaultPort = "2006"
 )
 
 func main() {
@@ -46,7 +47,6 @@ func main() {
 	olivia.StartServer(neuralNetworksMapContainer, *serverPortArg)
 }
 
-// executeModelRetraining retrains the given locales
 func executeModelRetraining(localeRetrainList string) {
 	// Iterate locales by separating them by comma
 	for _, individualLocale := range strings.Split(localeRetrainList, ",") {

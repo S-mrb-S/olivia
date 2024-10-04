@@ -14,7 +14,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// Client represents a websocket client
 type Client struct {
 	Information *map[string]interface{}
 	Locale      string
@@ -24,7 +23,6 @@ type Client struct {
 	mu          sync.Mutex // Mutex for concurrent access
 }
 
-// RequestMessage represents the message sent to the server
 type RequestMessage struct {
 	Type        int                    `json:"type"`
 	Content     string                 `json:"content"`
@@ -33,14 +31,12 @@ type RequestMessage struct {
 	Locale      string                 `json:"locale"`
 }
 
-// ResponseMessage represents the response received from the server
 type ResponseMessage struct {
 	Content     string                 `json:"content"`
 	Tag         string                 `json:"tag"`
 	Information map[string]interface{} `json:"information"`
 }
 
-// NewClient creates a new websocket client
 func NewClient(host string, ssl bool, information *map[string]interface{}) (*Client, error) {
 	scheme := "ws"
 	if ssl {
@@ -66,7 +62,6 @@ func NewClient(host string, ssl bool, information *map[string]interface{}) (*Cli
 	return client, nil // Return pointer to Client
 }
 
-// Close closes the websocket connection
 func (client *Client) Close() {
 	client.mu.Lock()
 	defer client.mu.Unlock()
@@ -74,7 +69,6 @@ func (client *Client) Close() {
 	client.Connection.Close()
 }
 
-// SendMessage sends a message to the server and waits for a response
 func (client *Client) SendMessage(content string) (ResponseMessage, error) {
 	client.mu.Lock()
 	defer client.mu.Unlock()
@@ -111,7 +105,6 @@ func (client *Client) SendMessage(content string) (ResponseMessage, error) {
 	return response, nil
 }
 
-// handshake performs the initial handshake with the server
 func (client *Client) handshake() error {
 	bytes, err := json.Marshal(RequestMessage{
 		Type:        0,
@@ -126,29 +119,25 @@ func (client *Client) handshake() error {
 	return client.Connection.WriteMessage(websocket.TextMessage, bytes)
 }
 
-// generateToken generates a new random token
 func generateToken() string {
 	b := make([]byte, 50)
 	rand.Read(b)
 	return fmt.Sprintf("%x", b)
 }
 
-// Configuration represents the application configuration
 type Configuration struct {
-	Port       string `json:"port"`
-	Host       string `json:"host"`
-	SSL        bool   `json:"ssl"`
-	BotName    string `json:"bot_name"`
-	UserToken  string `json:"user_token"`
+	Port      string `json:"port"`
+	Host      string `json:"host"`
+	SSL       bool   `json:"ssl"`
+	BotName   string `json:"bot_name"`
+	UserToken string `json:"user_token"`
 }
 
-// FileExists checks if a file exists
 func FileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
 }
 
-// SetupConfig sets up the configuration from the given file
 func SetupConfig(fileName string) *Configuration {
 	config := Configuration{
 		Port:      defaultPort,
@@ -181,12 +170,10 @@ func SetupConfig(fileName string) *Configuration {
 	return &config
 }
 
-// writeLog writes log messages to a file
 func writeLog(message string) {
 	logChannel <- message // Send log message to channel
 }
 
-// logWriter listens to log messages and writes them to the log file
 func logWriter() {
 	var f *os.File
 	var err error
@@ -206,7 +193,6 @@ func logWriter() {
 	}
 }
 
-// Global Variables
 const (
 	logFileName    = "logfile.log"
 	configFileName = "config.json"
@@ -274,7 +260,6 @@ func main() {
 	}
 }
 
-// setupGracefulShutdown sets up signal handling for graceful shutdown
 func setupGracefulShutdown() {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)

@@ -1,7 +1,5 @@
-// ----- by MRB -----
 package olivia
 
-// ==================================================
 import (
 	"encoding/json"
 	"fmt"
@@ -37,11 +35,8 @@ import (
 	"gopkg.in/cheggaaa/pb.v1"
 )
 
-// ==================================================
-// -- Variable --
 var cachedDataStore = map[string][]DataPacket{}
 
-// userInformation -> cachedUserData
 var cachedUserData = map[string]UserProfile{}
 
 var (
@@ -54,8 +49,6 @@ var (
 	cacheInstance = gocache.New(5*time.Minute, 5*time.Minute)
 )
 
-// upgrader -> websocketUpgrader
-// websocketUpgrader configures the websocket upgrader for handling connections
 var websocketUpgrader = websocket.Upgrader{ // upgrader -> websocketUpgrader
 	CheckOrigin: func(r *http.Request) bool {
 		return true
@@ -72,12 +65,8 @@ var intents = map[string][]Intent{}
 
 var userCache = gocache.New(5*time.Minute, 5*time.Minute)
 
-// DontUnderstand contains the tag for the don't understand messages
 const DontUnderstand = "don't understand"
 
-// Locales is the list of locales's tags and names
-// Please check if the language is supported in https://github.com/tebeka/snowball,
-// if it is please add the correct language name.
 var Locales = []Locale{
 	{
 		Tag:  "en",
@@ -119,12 +108,10 @@ var Locales = []Locale{
 
 const jokeURL = "https://official-joke-api.appspot.com/random_joke"
 
-// JokesTag is the intent tag for its module
 var JokesTag = "jokes"
 
 var modulesf = map[string][]Modulef{}
 
-// ReasonKeywords is for having the keywords in different languages
 var ReasonKeywords = map[string]ReasonKeyword{
 	"en": {
 		That: "that",
@@ -164,7 +151,6 @@ var ReasonKeywords = map[string]ReasonKeyword{
 	// },
 }
 
-// SpotifyKeyword is the map for having the music keywords in different languages
 var SpotifyKeyword = map[string]SpotifyKeywords{
 	"en": {
 		Play: "play",
@@ -263,7 +249,6 @@ var rules []Rule
 
 const day = time.Hour * 24
 
-// RuleTranslations are the translations of the rules in different languages
 var RuleTranslations = map[string]RuleTranslation{
 	"en": {
 		DaysOfWeek: []string{
@@ -382,7 +367,6 @@ var daysOfWeek = map[string]time.Weekday{
 	"sunday":    time.Sunday,
 }
 
-// PatternTranslation are the map of regexs in different languages
 var PatternTranslation = map[string]PatternTranslations{
 	"en": {
 		DateRegex: `(of )?(the )?((after )?tomorrow|((today|tonight)|(next )?(monday|tuesday|wednesday|thursday|friday|saturday|sunday))|(\d{2}|\d)(th|rd|st|nd)? (of )?(january|february|march|april|may|june|july|august|september|october|november|december)|((\d{2}|\d)/(\d{2}|\d)))`,
@@ -418,7 +402,6 @@ var fileName = "../res/authentication.txt"
 
 var authenticationHash []byte
 
-// MathDecimals is the map for having the regex on decimals in different languages
 var MathDecimals = map[string]string{
 	"en": `(\d+( |-)decimal(s)?)|(number (of )?decimal(s)? (is )?\d+)`,
 	// "de": `(\d+( |-)decimal(s)?)|(nummer (von )?decimal(s)? (ist )?\d+)`,
@@ -446,7 +429,6 @@ var (
 
 const adviceURL = "https://api.adviceslip.com/advice"
 
-// AdvicesTag is the intent tag for its module
 var AdvicesTag = "advices"
 
 var (
@@ -470,7 +452,6 @@ var (
 	NameSetterTag = "name setter"
 )
 
-// RandomTag is the intent tag for its module
 var RandomTag = "random number"
 
 var (
@@ -484,10 +465,8 @@ var (
 	MoviesDataTag = "movies search from data"
 )
 
-// MathTag is the intent tag for its module
 var MathTag = "math"
 
-// CurrencyTag is the intent tag for its module
 var CurrencyTag = "currency"
 
 var (
@@ -498,16 +477,8 @@ var (
 	ArticleCountries = map[string]func(string) string{}
 )
 
-// AreaTag is the intent tag for its module
 var AreaTag = "area"
 
-// ==================================================
-
-// ==================================================
-// -- Types --
-
-// Message -> DataPacket
-// DataPacket contains the message's tag and its contained matched sentences
 type DataPacket struct {
 	// Tag -> Label
 	Label string `json:"tag"`
@@ -515,8 +486,6 @@ type DataPacket struct {
 	Content []string `json:"messages"`
 }
 
-// Information -> UserProfile
-// UserProfile is the user's information retrieved from the client
 type UserProfile struct {
 	FullName         string         `json:"name"`            // Name -> FullName
 	GenrePreferences []string       `json:"movie_genres"`    // MovieGenres -> GenrePreferences
@@ -527,38 +496,28 @@ type UserProfile struct {
 	StreamingSecret  string         `json:"spotify_secret"`  // SpotifySecret -> StreamingSecret
 }
 
-// Reminder -> UserReminder
-// A UserReminder is something the user asked to be remembered
 type UserReminder struct {
 	ReminderDetails string `json:"reason"` // Reason -> ReminderDetails
 	ReminderDate    string `json:"date"`   // Date -> ReminderDate
 }
 
-// Dashboard -> DashboardData
-// DashboardData contains the data sent for the dashboard
 type DashboardData struct {
 	NetworkLayers NetworkLayersData `json:"layers"`   // Layers -> NetworkLayers
 	TrainingInfo  TrainingInfoData  `json:"training"` // Training -> TrainingInfo
 }
 
-// Layers -> NetworkLayersData
-// NetworkLayersData contains the data of the network's layers
 type NetworkLayersData struct {
 	InputCount  int `json:"input"`  // InputNodes -> InputCount
 	HiddenCount int `json:"hidden"` // HiddenLayers -> HiddenCount
 	OutputCount int `json:"output"` // OutputNodes -> OutputCount
 }
 
-// Training -> TrainingInfoData
-// TrainingInfoData contains the data related to the training of the network
 type TrainingInfoData struct {
 	LearningRate float64   `json:"rate"`   // Rate -> LearningRate
 	ErrorMetrics []float64 `json:"errors"` // Errors -> ErrorMetrics
 	TrainingTime float64   `json:"time"`   // Time -> TrainingTime
 }
 
-// RequestMessage -> clientRequestMessage
-// RequestMessage is the structure that uses entry connections to chat with the websocket
 type clientRequestMessage struct { // RequestMessage -> clientRequestMessage
 	Type        int         `json:"type"` // 0 for handshakes and 1 for messages
 	Content     string      `json:"content"`
@@ -567,26 +526,19 @@ type clientRequestMessage struct { // RequestMessage -> clientRequestMessage
 	Information UserProfile `json:"information"`
 }
 
-// ResponseMessage -> serverResponseMessage
-// ResponseMessage is the structure used to reply to the user through the websocket
 type serverResponseMessage struct { // ResponseMessage -> serverResponseMessage
 	Content     string      `json:"content"`
 	Tag         string      `json:"tag"`
 	Information UserProfile `json:"information"`
 }
 
-// Derivative -> LayerDerivative
-// LayerDerivative contains the derivatives of `z` and the adjustments
 type LayerDerivative struct { // Derivative -> LayerDerivative
 	Delta      Matrix
 	Adjustment Matrix
 }
 
-// Matrix is an alias for [][]float64
 type Matrix [][]float64
 
-// Network contains the Layers, Weights, Biases of a neural network then the actual output values
-// and the learning rate.
 type Network struct {
 	Layers  []Matrix
 	Weights []Matrix
@@ -598,28 +550,23 @@ type Network struct {
 	Locale  string
 }
 
-// LocaleCoverage is the element for the coverage of each language
 type LocaleCoverage struct {
 	Tag      string   `json:"locale_tag"`
 	Language string   `json:"language"`
 	Coverage Coverage `json:"coverage"`
 }
 
-// Coverage is the coverage for a single language which contains the coverage details of each section
 type Coverage struct {
 	Modules  CoverageDetails `json:"modules"`
 	Intents  CoverageDetails `json:"intents"`
 	Messages CoverageDetails `json:"messages"`
 }
 
-// CoverageDetails are the details of items not covered and the coverage percentage
 type CoverageDetails struct {
 	NotCovered []string `json:"not_covered"`
 	Coverage   int      `json:"coverage"`
 }
 
-// Intent is a way to group sentences that mean the same thing and link them with a tag which
-// represents what they mean, some responses that the bot can reply and a context
 type Intent struct {
 	Tag       string   `json:"tag"`
 	Patterns  []string `json:"patterns"`
@@ -627,42 +574,34 @@ type Intent struct {
 	Context   string   `json:"context"`
 }
 
-// Document is any sentence from the intents' patterns linked with its tag
 type Document struct {
 	Sentence Sentence
 	Tag      string
 }
 
-// A Sentence represents simply a sentence with its content as a string
 type Sentence struct {
 	Locale  string
 	Content string
 }
 
-// Result contains a predicted value with its tag and its value
 type Result struct {
 	Tag   string
 	Value float64
 }
 
-// An Error is what the api replies when an error occurs
 type Error struct {
 	Message string `json:"message"`
 }
 
-// DeleteRequest is for the parameters required to delete an intent via the REST Api
 type DeleteRequest struct {
 	Tag string `json:"tag"`
 }
 
-// A Locale is a registered locale in the file
 type Locale struct {
 	Tag  string
 	Name string
 }
 
-// Modulef is a structure for dynamic intents with a Tag, some Patterns and Responses and
-// a Replacer function to execute the dynamic changes.
 type Modulef struct {
 	Tag       string
 	Patterns  []string
@@ -671,7 +610,6 @@ type Modulef struct {
 	Context   string
 }
 
-// Joke represents the response from the joke api
 type Joke struct {
 	ID        int64  `json:"id"`
 	Type      string `json:"type"`
@@ -679,32 +617,27 @@ type Joke struct {
 	Punchline string `json:"punchline"`
 }
 
-// A Module is a module that will be executed when a connection is opened by a user
 type Module struct {
 	Action func(string, string)
 }
 
-// ReasonKeyword are used to find reason for different languages
 type ReasonKeyword struct {
 	That string
 	To   string
 }
 
-// SpotifyKeywords are the keywords used to get music name
 type SpotifyKeywords struct {
 	Play string
 	From string
 	On   string
 }
 
-// Movie is the serializer from ../res/datasets/movies.csv
 type Movie struct {
 	Name   string
 	Genres []string
 	Rating float64
 }
 
-// Country is the serializer of the countries.json file in the res folder
 type Country struct {
 	Name     map[string]string `json:"name"`
 	Capital  string            `json:"capital"`
@@ -713,11 +646,8 @@ type Country struct {
 	Currency string            `json:"currency"`
 }
 
-// A Rule is a function that takes the given sentence and tries to parse a specific
-// rule to return a date, if not, the date is empty.
 type Rule func(string, string) time.Time
 
-// A RuleTranslation is all the texts/regexs to match the dates
 type RuleTranslation struct {
 	DaysOfWeek        []string
 	Months            []string
@@ -729,14 +659,11 @@ type RuleTranslation struct {
 	RuleNaturalDate   string
 }
 
-// PatternTranslations are the translations of the regexs for dates
 type PatternTranslations struct {
 	DateRegex string
 	TimeRegex string
 }
 
-// ==================================================
-// FetchFileContent returns the byte array of a file located at the specified path or in the parent directory
 func FetchFileContent(filePath string) (fileContent []byte) {
 	fileContent, readError := os.ReadFile(filePath)
 	if readError != nil {
@@ -750,8 +677,6 @@ func FetchFileContent(filePath string) (fileContent []byte) {
 	return fileContent
 }
 
-// SerializeMessages -> GenerateSerializedMessages
-// GenerateSerializedMessages serializes the content of `../res/datasets/messages.json` in JSON
 func GenerateSerializedMessages(region string) []DataPacket {
 	var parsedData []DataPacket
 	deserializationError := json.Unmarshal(FetchFileContent("../res/locales/"+region+"/messages.json"), &parsedData)
@@ -764,14 +689,10 @@ func GenerateSerializedMessages(region string) []DataPacket {
 	return parsedData
 }
 
-// GetMessages -> RetrieveCachedMessages
-// RetrieveCachedMessages returns the cached messages for the given locale
 func RetrieveCachedMessages(region string) []DataPacket {
 	return cachedDataStore[region]
 }
 
-// GetMessageByTag -> FindMessageByLabel
-// FindMessageByLabel returns a message found by the given tag and locale
 func FindMessageByLabel(identifier, region string) DataPacket {
 	for _, item := range cachedDataStore[region] {
 		if identifier != item.Label {
@@ -784,8 +705,6 @@ func FindMessageByLabel(identifier, region string) DataPacket {
 	return DataPacket{}
 }
 
-// GetMessage -> SelectRandomMessage
-// SelectRandomMessage retrieves a message tag and returns a random message chosen from ../res/datasets/messages.json
 func SelectRandomMessage(region, identifier string) string {
 	for _, item := range cachedDataStore[region] {
 		// Find the message with the right tag
@@ -806,10 +725,6 @@ func SelectRandomMessage(region, identifier string) string {
 	return ""
 }
 
-// slice.go
-
-// Contains -> SliceIncludes
-// SliceIncludes checks if a string slice contains a specified string
 func SliceIncludes(collection []string, searchTerm string) bool { // slice -> collection, text -> searchTerm
 	for _, element := range collection { // item -> element
 		if element == searchTerm {
@@ -820,8 +735,6 @@ func SliceIncludes(collection []string, searchTerm string) bool { // slice -> co
 	return false
 }
 
-// Difference -> SliceDifference
-// SliceDifference returns the difference of two string slices
 func SliceDifference(collection1 []string, collection2 []string) (difference []string) { // slice -> collection1, slice2 -> collection2
 	// Loop two times, first to find collection1 strings not in collection2,
 	// second loop to find collection2 strings not in collection1
@@ -848,8 +761,6 @@ func SliceDifference(collection1 []string, collection2 []string) (difference []s
 	return difference
 }
 
-// Index -> SliceIndex
-// SliceIndex returns the index of a string in a string slice
 func SliceIndex(collection []string, searchTerm string) int { // slice -> collection, text -> searchTerm
 	for i, element := range collection { // item -> element
 		if element == searchTerm {
@@ -860,29 +771,20 @@ func SliceIndex(collection []string, searchTerm string) int { // slice -> collec
 	return 0
 }
 
-// ChangeUserInformation -> UpdateUserProfile
-// UpdateUserProfile requires the token of the user and a function to update the profile,
-// and returns the updated profile.
 func UpdateUserProfile(authToken string, profileUpdater func(UserProfile) UserProfile) { // token -> authToken, changer -> profileUpdater
 	cachedUserData[authToken] = profileUpdater(cachedUserData[authToken])
 }
 
-// SetUserInformation -> StoreUserProfile
-// StoreUserProfile sets the user's profile using their authentication token.
 func StoreUserProfile(authToken string, profile UserProfile) { // token -> authToken, information -> profile
 	cachedUserData[authToken] = profile
 }
 
-// GetUserInformation -> RetrieveUserProfile
-// RetrieveUserProfile returns the user's profile using their authentication token.
 func RetrieveUserProfile(authToken string) UserProfile { // token -> authToken
 	return cachedUserData[authToken]
 }
 
 /* training */
-// //
 
-// trainDataMain returns the inputs and outputs for the neural network
 func trainDataMain(locale string) (inputs, outputs [][]float64) {
 	words, classes, documents := Organize(locale)
 
@@ -901,8 +803,6 @@ func trainDataMain(locale string) (inputs, outputs [][]float64) {
 	return inputs, outputs
 }
 
-// CreateNeuralNetwork returns a new neural network which is loaded from ../res/training.json or
-// trained from trainDataMain() inputs and targets.
 func CreateNeuralNetwork(locale string, ignoreTrainingFile bool) (neuralNetwork Network) {
 	// Decide if the network is created by the save or is a new one
 	saveFile := "../res/locales/" + locale + "/training.json"
@@ -931,8 +831,6 @@ func CreateNeuralNetwork(locale string, ignoreTrainingFile bool) (neuralNetwork 
 	return
 }
 
-// GetDashboardData -> EncodeDashboardData
-// EncodeDashboardData encodes the json for the dashboard data
 func EncodeDashboardData(w http.ResponseWriter, r *http.Request) { // GetDashboardData -> EncodeDashboardData
 	w.Header().Set("Content-Type", "application/json")
 
@@ -948,8 +846,6 @@ func EncodeDashboardData(w http.ResponseWriter, r *http.Request) { // GetDashboa
 	}
 }
 
-// GetLayers -> GetNetworkLayers
-// GetNetworkLayers returns the number of input, hidden and output layers of the network
 func GetNetworkLayers(locale string) NetworkLayersData { // GetLayers -> GetNetworkLayers
 	return NetworkLayersData{ // Layers -> NetworkLayersData
 		// Get the number of rows of the first layer to get the count of input nodes
@@ -961,8 +857,6 @@ func GetNetworkLayers(locale string) NetworkLayersData { // GetLayers -> GetNetw
 	}
 }
 
-// GetTraining -> GetTrainingInfo
-// GetTrainingInfo returns the learning rate, training date and error loss for the network
 func GetTrainingInfo(locale string) TrainingInfoData { // GetTraining -> GetTrainingInfo
 	// Retrieve the information from the neural network
 	return TrainingInfoData{ // Training -> TrainingInfoData
@@ -972,8 +866,6 @@ func GetTrainingInfo(locale string) TrainingInfoData { // GetTraining -> GetTrai
 	}
 }
 
-// Serve -> StartServer
-// StartServer initializes the server with the given neural networks and port
 func StartServer(neuralNetworkInstances map[string]Network, serverPort string) { // Serve -> StartServer, _neuralNetworks -> neuralNetworkInstances, port -> serverPort
 	// Set the current global network as a global variable
 	globalNeuralNetworks = neuralNetworkInstances
@@ -1000,8 +892,6 @@ func StartServer(neuralNetworkInstances map[string]Network, serverPort string) {
 	}
 }
 
-// Train -> TrainNeuralNetwork
-// TrainNeuralNetwork is the route to re-train the neural network
 func TrainNeuralNetwork(w http.ResponseWriter, r *http.Request) { // Train -> TrainNeuralNetwork
 	// Checks if the token present in the headers is the right one
 	token := r.Header.Get("Olivia-Token")
@@ -1020,8 +910,6 @@ func TrainNeuralNetwork(w http.ResponseWriter, r *http.Request) { // Train -> Tr
 	}
 }
 
-// SocketHandle -> HandleWebSocketConnection
-// HandleWebSocketConnection manages the entry connections and replies with the neural network
 func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) { // SocketHandle -> HandleWebSocketConnection
 	conn, _ := websocketUpgrader.Upgrade(w, r, nil) // upgrader -> websocketUpgrader
 	fmt.Println(color.FgGreen.Render("A new connection has been opened"))
@@ -1078,8 +966,6 @@ func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) { // Sock
 	}
 }
 
-// Reply -> generateReply
-// generateReply takes the entry message and returns an array of bytes for the answer
 func generateReply(request clientRequestMessage) []byte { // Reply -> generateReply, RequestMessage -> clientRequestMessage
 	var responseSentence, responseTag string
 
@@ -1114,8 +1000,6 @@ func generateReply(request clientRequestMessage) []byte { // Reply -> generateRe
 	return bytes
 }
 
-// ComputeLastLayerDerivatives -> CalculateFinalLayerDerivatives
-// CalculateFinalLayerDerivatives returns the derivatives of the last layer L
 func (network Network) CalculateFinalLayerDerivatives() LayerDerivative { // ComputeLastLayerDerivatives -> CalculateFinalLayerDerivatives
 	l := len(network.Layers) - 1
 	lastLayer := network.Layers[l]
@@ -1137,8 +1021,6 @@ func (network Network) CalculateFinalLayerDerivatives() LayerDerivative { // Com
 	}
 }
 
-// ComputeDerivatives -> CalculateLayerDerivatives
-// CalculateLayerDerivatives returns the derivatives of a specific layer l defined by i
 func (network Network) CalculateLayerDerivatives(i int, derivatives []LayerDerivative) LayerDerivative { // ComputeDerivatives -> CalculateLayerDerivatives, Derivative -> LayerDerivative
 	l := len(network.Layers) - 2 - i
 
@@ -1161,8 +1043,6 @@ func (network Network) CalculateLayerDerivatives(i int, derivatives []LayerDeriv
 	}
 }
 
-// Adjust -> ApplyAdjustments
-// ApplyAdjustments makes the adjustments to weights and biases
 func (network Network) ApplyAdjustments(derivatives []LayerDerivative) { // Adjust -> ApplyAdjustments, Derivative -> LayerDerivative
 	for i, derivative := range derivatives {
 		l := len(derivatives) - i
@@ -1178,23 +1058,18 @@ func (network Network) ApplyAdjustments(derivatives []LayerDerivative) { // Adju
 	}
 }
 
-// Sigmoid is the activation function
 func Sigmoid(x float64) float64 {
 	return 1 / (1 + math.Exp(-x))
 }
 
-// MultipliesByTwo takes a float and returns the float multiplied by two
 func MultipliesByTwo(x float64) float64 {
 	return 2 * x
 }
 
-// SubtractsOne takes a float and returns the float subtracted by one
 func SubtractsOne(x float64) float64 {
 	return x - 1
 }
 
-// RandomMatrix returns the value of a random matrix of *rows* and *columns* dimensions and
-// where the values are between *lower* and *upper*.
 func RandomMatrix(rows, columns int) (matrix Matrix) {
 	matrix = make(Matrix, rows)
 
@@ -1208,7 +1083,6 @@ func RandomMatrix(rows, columns int) (matrix Matrix) {
 	return
 }
 
-// CreateMatrix returns an empty matrix which is the size of rows and columns
 func CreateMatrix(rows, columns int) (matrix Matrix) {
 	matrix = make(Matrix, rows)
 
@@ -1219,17 +1093,14 @@ func CreateMatrix(rows, columns int) (matrix Matrix) {
 	return
 }
 
-// Rows returns number of matrix's rows
 func Rows(matrix Matrix) int {
 	return len(matrix)
 }
 
-// Columns returns number of matrix's columns
 func Columns(matrix Matrix) int {
 	return len(matrix[0])
 }
 
-// ApplyFunctionWithIndex returns a matrix where fn has been applied with the indexes provided
 func ApplyFunctionWithIndex(matrix Matrix, fn func(i, j int, x float64) float64) Matrix {
 	for i := 0; i < Rows(matrix); i++ {
 		for j := 0; j < Columns(matrix); j++ {
@@ -1240,21 +1111,18 @@ func ApplyFunctionWithIndex(matrix Matrix, fn func(i, j int, x float64) float64)
 	return matrix
 }
 
-// ApplyFunction returns a matrix where fn has been applied
 func ApplyFunction(matrix Matrix, fn func(x float64) float64) Matrix {
 	return ApplyFunctionWithIndex(matrix, func(i, j int, x float64) float64 {
 		return fn(x)
 	})
 }
 
-// ApplyRate returns a matrix where the learning rate has been multiplies
 func ApplyRate(matrix Matrix, rate float64) Matrix {
 	return ApplyFunction(matrix, func(x float64) float64 {
 		return rate * x
 	})
 }
 
-// DotProduct returns a matrix which is the result of the dot product between matrix and matrix2
 func DotProduct(matrix, matrix2 Matrix) Matrix {
 	if Columns(matrix) != Rows(matrix2) {
 		panic("Cannot make dot product between these two matrix.")
@@ -1274,7 +1142,6 @@ func DotProduct(matrix, matrix2 Matrix) Matrix {
 	)
 }
 
-// Sum returns the sum of matrix and matrix2
 func Sum(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	ErrorNotSameSize(matrix, matrix2)
 
@@ -1285,7 +1152,6 @@ func Sum(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	})
 }
 
-// Difference returns the difference between matrix and matrix2
 func Difference(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	ErrorNotSameSize(matrix, matrix2)
 
@@ -1296,7 +1162,6 @@ func Difference(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	})
 }
 
-// Multiplication returns the multiplication of matrix and matrix2
 func Multiplication(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	ErrorNotSameSize(matrix, matrix2)
 
@@ -1307,7 +1172,6 @@ func Multiplication(matrix, matrix2 Matrix) (resultMatrix Matrix) {
 	})
 }
 
-// Transpose returns the matrix transposed
 func Transpose(matrix Matrix) (resultMatrix Matrix) {
 	resultMatrix = CreateMatrix(Columns(matrix), Rows(matrix))
 
@@ -1320,14 +1184,12 @@ func Transpose(matrix Matrix) (resultMatrix Matrix) {
 	return resultMatrix
 }
 
-// ErrorNotSameSize panics if the matrices do not have the same dimension
 func ErrorNotSameSize(matrix, matrix2 Matrix) {
 	if Rows(matrix) != Rows(matrix2) && Columns(matrix) != Columns(matrix2) {
 		panic("These two matrices must have the same dimension.")
 	}
 }
 
-// LoadNetwork returns a Network from a specified file
 func LoadNetwork(fileName string) *Network {
 	inF, err := os.Open(fileName)
 	if err != nil {
@@ -1345,7 +1207,6 @@ func LoadNetwork(fileName string) *Network {
 	return neuralNetwork
 }
 
-// CreateNetwork creates the network by generating the layers, weights and biases
 func CreateNetwork(locale string, rate float64, input, output Matrix, hiddensNodes ...int) Network {
 	input = append([][]float64{
 		make([]float64, len(input[0])),
@@ -1386,7 +1247,6 @@ func CreateNetwork(locale string, rate float64, input, output Matrix, hiddensNod
 	}
 }
 
-// Save saves the neural network in a specified file which can be retrieved with LoadNetwork
 func (network Network) Save(fileName string) {
 	outF, err := os.OpenFile(fileName, os.O_CREATE|os.O_RDWR, 0777)
 	if err != nil {
@@ -1401,7 +1261,6 @@ func (network Network) Save(fileName string) {
 	}
 }
 
-// FeedForward executes forward propagation for the given inputs in the network
 func (network *Network) FeedForward() {
 	for i := 0; i < len(network.Layers)-1; i++ {
 		layer, weights, biases := network.Layers[i], network.Weights[i], network.Biases[i]
@@ -1415,14 +1274,12 @@ func (network *Network) FeedForward() {
 	}
 }
 
-// Predict returns the predicted value for a training example
 func (network *Network) Predict(input []float64) []float64 {
 	network.Layers[0] = Matrix{input}
 	network.FeedForward()
 	return network.Layers[len(network.Layers)-1][0]
 }
 
-// FeedBackward executes back propagation to adjust the weights for all the layers
 func (network *Network) FeedBackward() {
 	var derivatives []LayerDerivative
 	derivatives = append(derivatives, network.CalculateFinalLayerDerivatives())
@@ -1436,7 +1293,6 @@ func (network *Network) FeedBackward() {
 	network.ApplyAdjustments(derivatives)
 }
 
-// ComputeError returns the average of all the errors after the training
 func (network *Network) ComputeError() float64 {
 	// Feed forward to compute the last layer's values
 	network.FeedForward()
@@ -1457,8 +1313,6 @@ func (network *Network) ComputeError() float64 {
 	return sum / float64(i)
 }
 
-// Train trains the neural network with a given number of iterations by executing
-// forward and back propagation
 func (network *Network) Train(iterations int) {
 	// Initialize the start date
 	start := time.Now()
@@ -1505,7 +1359,6 @@ func (network *Network) Train(iterations int) {
 	fmt.Printf("The error rate is %s.\n", color.FgGreen.Render(arrangedError))
 }
 
-// GetCoverage encodes the coverage of each language in json
 func GetCoverage(writer http.ResponseWriter, _ *http.Request) {
 	allowedHeaders := "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization,Olivia-Token"
 	writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -1538,8 +1391,6 @@ func GetCoverage(writer http.ResponseWriter, _ *http.Request) {
 	json.NewEncoder(writer).Encode(coverage)
 }
 
-// getMessageCoverage returns an array of not covered messages and the percentage of message that
-// aren't translated in the given locale.
 func getMessageCoverage(locale string) CoverageDetails {
 	var notCoveredMessages []string
 
@@ -1563,8 +1414,6 @@ func getMessageCoverage(locale string) CoverageDetails {
 	}
 }
 
-// getIntentCoverage returns an array of not covered intents and the percentage of intents that aren't
-// translated in the given locale.
 func getIntentCoverage(locale string) CoverageDetails {
 	var notCoveredIntents []string
 
@@ -1588,8 +1437,6 @@ func getIntentCoverage(locale string) CoverageDetails {
 	}
 }
 
-// getModuleCoverage returns an array of not covered modules and the percentage of modules that aren't
-// translated in the given locale.
 func getModuleCoverage(locale string) CoverageDetails {
 	var notCoveredModules []string
 
@@ -1613,13 +1460,10 @@ func getModuleCoverage(locale string) CoverageDetails {
 	}
 }
 
-// calculateCoverage returns the coverage calculated with the given length of not covered
-// items and the default items length
 func calculateCoverage(notCoveredLength, defaultLength int) int {
 	return 100 * (defaultLength - notCoveredLength) / defaultLength
 }
 
-// arrange checks the format of a string to normalize it, remove ignored characters
 func (sentence *Sentence) arrange() {
 	// Remove punctuation after letters
 	punctuationRegex := regexp.MustCompile(`[a-zA-Z]( )?(\.|\?|!|¿|¡)`)
@@ -1632,7 +1476,6 @@ func (sentence *Sentence) arrange() {
 	sentence.Content = strings.TrimSpace(sentence.Content)
 }
 
-// removeStopWords takes an arary of words, removes the stopwords and returns it
 func removeStopWords(locale string, words []string) []string {
 	// Don't remove stopwords for small sentences like “How are you” because it will remove all the words
 	if len(words) <= 4 {
@@ -1660,7 +1503,6 @@ func removeStopWords(locale string, words []string) []string {
 	return SliceDifference(words, wordsToRemove)
 }
 
-// tokenize returns a list of words that have been lower-cased
 func (sentence Sentence) tokenize() (tokens []string) {
 	// Split the sentence in words
 	tokens = strings.Fields(sentence.Content)
@@ -1675,7 +1517,6 @@ func (sentence Sentence) tokenize() (tokens []string) {
 	return
 }
 
-// stem returns the sentence split in stemmed words
 func (sentence Sentence) stem() (tokenizeWords []string) {
 	locale := GetTagByName(sentence.Locale)
 	// Set default locale to english
@@ -1700,7 +1541,6 @@ func (sentence Sentence) stem() (tokenizeWords []string) {
 	return
 }
 
-// WordsBag retrieves the intents words and returns the sentence converted in a bag of words
 func (sentence Sentence) WordsBag(words []string) (bag []float64) {
 	for _, word := range words {
 		// Append 1 if the patternWords contains the actual word, else 0
@@ -1715,17 +1555,14 @@ func (sentence Sentence) WordsBag(words []string) (bag []float64) {
 	return bag
 }
 
-// CacheIntents set the given intents to the global variable intents
 func CacheIntents(locale string, _intents []Intent) {
 	intents[locale] = _intents
 }
 
-// GetIntents locale returns the cached intents
 func GetIntents_l(locale string) []Intent {
 	return intents[locale]
 }
 
-// SerializeIntents returns a list of intents retrieved from the given intents file
 func SerializeIntents(locale string) (_intents []Intent) {
 	err := json.Unmarshal(FetchFileContent("../res/locales/"+locale+"/intents.json"), &_intents)
 	if err != nil {
@@ -1737,7 +1574,6 @@ func SerializeIntents(locale string) (_intents []Intent) {
 	return _intents
 }
 
-// SerializeModulesIntents retrieves all the registered modules and returns an array of Intents
 func SerializeModulesIntents(locale string) []Intent {
 	registeredModules := GetModulesf(locale)
 	intents := make([]Intent, len(registeredModules))
@@ -1754,7 +1590,6 @@ func SerializeModulesIntents(locale string) []Intent {
 	return intents
 }
 
-// GetIntentByTag returns an intent found by given tag and locale
 func GetIntentByTag(tag, locale string) Intent {
 	for _, intent := range GetIntents_l(locale) {
 		if tag != intent.Tag {
@@ -1767,8 +1602,6 @@ func GetIntentByTag(tag, locale string) Intent {
 	return Intent{}
 }
 
-// Organize intents with an array of all words, an array with a representative word of each tag
-// and an array of Documents which contains a word list associated with a tag
 func Organize(locale string) (words, classes []string, documents []Document) {
 	// Append the modules intents to the intents from ../res/datasets/intents.json
 	intents := append(
@@ -1807,7 +1640,6 @@ func Organize(locale string) (words, classes []string, documents []Document) {
 	return words, classes, documents
 }
 
-// NewSentence returns a Sentence object where the content has been arranged
 func NewSentence(locale, content string) (sentence Sentence) {
 	sentence = Sentence{
 		Locale:  locale,
@@ -1818,7 +1650,6 @@ func NewSentence(locale, content string) (sentence Sentence) {
 	return
 }
 
-// PredictTag classifies the sentence with the model
 func (sentence Sentence) PredictTag(neuralNetwork Network) string {
 	words, classes, _ := Organize(sentence.Locale)
 
@@ -1844,8 +1675,6 @@ func (sentence Sentence) PredictTag(neuralNetwork Network) string {
 	return resultsTag[0].Tag
 }
 
-// RandomizeResponse takes the entry message, the response tag and the token and returns a random
-// message from ../res/datasets/intents.json where the triggers are applied
 func RandomizeResponse(locale, entry, tag, token string) (string, string) {
 	if tag == DontUnderstand {
 		return DontUnderstand, SelectRandomMessage(locale, tag)
@@ -1882,7 +1711,6 @@ func RandomizeResponse(locale, entry, tag, token string) (string, string) {
 	return DontUnderstand, SelectRandomMessage(locale, DontUnderstand)
 }
 
-// Calculate send the sentence content to the neural network and returns a response with the matching tag
 func (sentence Sentence) Calculate(cache gocache.Cache, neuralNetwork Network, token string) (string, string) {
 	tag, found := cache.Get(sentence.Content)
 
@@ -1895,7 +1723,6 @@ func (sentence Sentence) Calculate(cache gocache.Cache, neuralNetwork Network, t
 	return RandomizeResponse(sentence.Locale, sentence.Content, tag.(string), token)
 }
 
-// LogResults print in the console the sentence and its tags sorted by prediction
 func LogResults(locale, entry string, results []Result) {
 	// If NO_LOGS is present, then don't print the given messages
 	if os.Getenv("NO_LOGS") == "1" {
@@ -1920,7 +1747,6 @@ func LogResults(locale, entry string, results []Result) {
 	}
 }
 
-// GenerateToken generates a random token of 30 characters and returns it
 func GenerateToken() string {
 	b := make([]byte, 30)
 	rand.Read(b)
@@ -1929,25 +1755,21 @@ func GenerateToken() string {
 	return fmt.Sprintf("%x", b)
 }
 
-// HashToken gets the given tokens and returns its hash using bcrypt
 func HashToken(token string) []byte {
 	bytes, _ := bcrypt.GenerateFromPassword([]byte(token), 14)
 	return bytes
 }
 
-// ChecksToken checks if the given token is the good one from the authentication file
 func ChecksToken(token string) bool {
 	err := bcrypt.CompareHashAndPassword(authenticationHash, []byte(token))
 	return err == nil
 }
 
-// AuthenticationFileExists checks if the authentication file exists and return the condition
 func AuthenticationFileExists() bool {
 	_, err := os.Open(fileName)
 	return err == nil
 }
 
-// SaveHash saves the given hash to the authentication file
 func SaveHash(hash string) {
 	file, err := os.Create(fileName)
 	if err != nil {
@@ -1959,7 +1781,6 @@ func SaveHash(hash string) {
 	file.WriteString(hash)
 }
 
-// Authenticate checks if the authentication file exists and if not it generates the file with a new token
 func Authenticate() {
 	// Do nothing if the authentication file exists
 	if AuthenticationFileExists() {
@@ -1980,7 +1801,6 @@ func Authenticate() {
 	authenticationHash = hash
 }
 
-// WriteIntents writes the given intents to the intents file
 func WriteIntents(locale string, intents []Intent) {
 	CacheIntents(locale, intents)
 
@@ -1998,7 +1818,6 @@ func WriteIntents(locale string, intents []Intent) {
 	file.Write(bytes)
 }
 
-// AddIntent adds the given intent to the intents file
 func AddIntent(locale string, intent Intent) {
 	intents := append(SerializeIntents(locale), intent)
 
@@ -2007,7 +1826,6 @@ func AddIntent(locale string, intent Intent) {
 	fmt.Printf("Added %s intent.\n", color.FgMagenta.Render(intent.Tag))
 }
 
-// RemoveIntent removes the intent with the given tag from the intents file
 func RemoveIntent(locale, tag string) {
 	intents := SerializeIntents(locale)
 
@@ -2025,7 +1843,6 @@ func RemoveIntent(locale, tag string) {
 	WriteIntents(locale, intents)
 }
 
-// GetIntents is the route to get the intents
 func GetIntents(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
@@ -2035,7 +1852,6 @@ func GetIntents(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(GetIntents_l(data["locale"]))
 }
 
-// CreateIntent is the route to create a new intent
 func CreateIntent(w http.ResponseWriter, r *http.Request) {
 	allowedHeaders := "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization,Olivia-Token"
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -2081,7 +1897,6 @@ func CreateIntent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(intent)
 }
 
-// DeleteIntent is the route used to delete an intent
 func DeleteIntent(w http.ResponseWriter, r *http.Request) {
 	allowedHeaders := "Accept, Content-Type, Content-Length, Accept-Encoding, Authorization,Olivia-Token"
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -2108,7 +1923,6 @@ func DeleteIntent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(GetIntents_l(data["locale"]))
 }
 
-// GetNameByTag returns the name of the given locale's tag
 func GetNameByTag(tag string) string {
 	for _, locale := range Locales {
 		if locale.Tag != tag {
@@ -2121,7 +1935,6 @@ func GetNameByTag(tag string) string {
 	return ""
 }
 
-// GetTagByName returns the tag of the given locale's name
 func GetTagByName(name string) string {
 	for _, locale := range Locales {
 		if locale.Name != name {
@@ -2134,7 +1947,6 @@ func GetTagByName(name string) string {
 	return ""
 }
 
-// Exists checks if the given tag exists in the list of locales
 func Exists(tag string) bool {
 	for _, locale := range Locales {
 		if locale.Tag == tag {
@@ -2145,8 +1957,6 @@ func Exists(tag string) bool {
 	return false
 }
 
-// SearchTime returns the found date in the given sentence and the sentence without the date, if no date has
-// been found, it returns an empty date and the given sentence.
 func SearchTime(locale, sentence string) (string, time.Time) {
 	_time := RuleTime(sentence)
 	// Set the time to 12am if no time has been found
@@ -2169,7 +1979,6 @@ func SearchTime(locale, sentence string) (string, time.Time) {
 	return sentence, time.Now().Add(time.Hour * 24)
 }
 
-// DeleteDates removes the dates of the given sentence and returns it
 func DeleteDates(locale, sentence string) string {
 	// Create a regex to match the patterns of dates to remove them.
 	datePatterns := regexp.MustCompile(PatternTranslation[locale].DateRegex)
@@ -2180,7 +1989,6 @@ func DeleteDates(locale, sentence string) string {
 	return strings.TrimSpace(sentence)
 }
 
-// DeleteTimes removes the times of the given sentence and returns it
 func DeleteTimes(locale, sentence string) string {
 	// Create a regex to match the patterns of times to remove them.
 	timePatterns := regexp.MustCompile(PatternTranslation[locale].TimeRegex)
@@ -2191,7 +1999,6 @@ func DeleteTimes(locale, sentence string) string {
 	return strings.TrimSpace(sentence)
 }
 
-// RegisterRule takes a rule in parameter and register it to the array of rules
 func RegisterRule(rule Rule) {
 	rules = append(rules, rule)
 }
@@ -2205,8 +2012,6 @@ func init() {
 	RegisterRule(RuleDate)
 }
 
-// RuleToday checks for today, tonight, this afternoon dates in the given sentence, then
-// it returns the date parsed.
 func RuleToday(locale, sentence string) (result time.Time) {
 	todayRegex := regexp.MustCompile(RuleTranslations[locale].RuleToday)
 	today := todayRegex.FindString(sentence)
@@ -2219,8 +2024,6 @@ func RuleToday(locale, sentence string) (result time.Time) {
 	return time.Now()
 }
 
-// RuleTomorrow checks for "tomorrow" and "after tomorrow" dates in the given sentence, then
-// it returns the date parsed.
 func RuleTomorrow(locale, sentence string) (result time.Time) {
 	tomorrowRegex := regexp.MustCompile(RuleTranslations[locale].RuleTomorrow)
 	date := tomorrowRegex.FindString(sentence)
@@ -2240,8 +2043,6 @@ func RuleTomorrow(locale, sentence string) (result time.Time) {
 	return
 }
 
-// RuleDayOfWeek checks for the days of the week and the keyword "next" in the given sentence,
-// then it returns the date parsed.
 func RuleDayOfWeek(locale, sentence string) time.Time {
 	dayOfWeekRegex := regexp.MustCompile(RuleTranslations[locale].RuleDayOfWeek)
 	date := dayOfWeekRegex.FindString(sentence)
@@ -2280,8 +2081,6 @@ func RuleDayOfWeek(locale, sentence string) time.Time {
 	return time.Now().Add(day * time.Duration(calculatedDate))
 }
 
-// RuleNaturalDate checks for the dates written in natural language in the given sentence,
-// then it returns the date parsed.
 func RuleNaturalDate(locale, sentence string) time.Time {
 	naturalMonthRegex := regexp.MustCompile(
 		RuleTranslations[locale].RuleNaturalDate,
@@ -2333,7 +2132,6 @@ func RuleNaturalDate(locale, sentence string) time.Time {
 	return date
 }
 
-// RuleDate checks for dates written like mm/dd
 func RuleDate(locale, sentence string) time.Time {
 	dateRegex := regexp.MustCompile(`(\d{2}|\d)/(\d{2}|\d)`)
 	date := dateRegex.FindString(sentence)
@@ -2360,7 +2158,6 @@ func RuleDate(locale, sentence string) time.Time {
 	return parsedDate
 }
 
-// RuleTime checks for an hour written like 9pm
 func RuleTime(sentence string) time.Time {
 	timeRegex := regexp.MustCompile(`(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`)
 	foundTime := timeRegex.FindString(sentence)
@@ -2399,7 +2196,6 @@ func RuleTime(sentence string) time.Time {
 	return response
 }
 
-// SerializeCountries returns a list of countries, serialized from `../res/datasets/countries.json`
 func SerializeCountries() (countries []Country) {
 	err := json.Unmarshal(FetchFileContent("../res/datasets/countries.json"), &countries)
 	if err != nil {
@@ -2409,7 +2205,6 @@ func SerializeCountries() (countries []Country) {
 	return countries
 }
 
-// FindCountry returns the country found in the sentence and if no country is found, returns an empty Country struct
 func FindCountry(locale, sentence string) Country {
 	for _, country := range countries {
 		name, exists := country.Name[locale]
@@ -2431,8 +2226,6 @@ func FindCountry(locale, sentence string) Country {
 	return Country{}
 }
 
-// LevenshteinDistance calculates the Levenshtein Distance between two given words and returns it.
-// Please see https://en.wikipedia.org/wiki/Levenshtein_distance.
 func LevenshteinDistance(first, second string) int {
 	// Returns the length if it's empty
 	if first == "" {
@@ -2458,7 +2251,6 @@ func LevenshteinDistance(first, second string) int {
 	return a + 1
 }
 
-// LevenshteinContains checks for a given matching string in a given sentence with a minimum rate for Levenshtein.
 func LevenshteinContains(sentence, matching string, rate int) bool {
 	words := strings.Split(sentence, " ")
 	for _, word := range words {
@@ -2471,7 +2263,6 @@ func LevenshteinContains(sentence, matching string, rate int) bool {
 	return false
 }
 
-// FindMathOperation finds a math operation in a string an returns it
 func FindMathOperation(entry string) string {
 	mathRegex := regexp.MustCompile(
 		`((\()?(((\d+|pi)(\^\d+|!|.)?)|sqrt|cos|sin|tan|acos|asin|atan|log|ln|abs)( )?[+*\/\-x]?( )?(\))?[+*\/\-]?)+`,
@@ -2483,7 +2274,6 @@ func FindMathOperation(entry string) string {
 	return strings.TrimSpace(operation)
 }
 
-// FindNumberOfDecimals finds the number of decimals asked in the query
 func FindNumberOfDecimals(locale, entry string) int {
 	decimalsRegex := regexp.MustCompile(
 		MathDecimals[locale],
@@ -2496,7 +2286,6 @@ func FindNumberOfDecimals(locale, entry string) int {
 	return decimalsInt
 }
 
-// SerializeMovies retrieves the content of ../res/datasets/movies.csv and serialize it
 func SerializeMovies() (movies []Movie) {
 	path := "../res/datasets/movies.csv"
 	bytes, err := os.Open(path)
@@ -2526,7 +2315,6 @@ func SerializeMovies() (movies []Movie) {
 	return
 }
 
-// SearchMovie search a movie for a given genre
 func SearchMovie(genre, userToken string) (output Movie) {
 	for _, movie := range movies {
 		userMovieBlacklist := RetrieveUserProfile(userToken).DislikedMovies
@@ -2549,7 +2337,6 @@ func SearchMovie(genre, userToken string) (output Movie) {
 	return
 }
 
-// FindMoviesGenres returns an array of genres found in the entry string
 func FindMoviesGenres(locale, content string) (output []string) {
 	for i, genre := range MoviesGenres[locale] {
 		if LevenshteinContains(strings.ToUpper(content), strings.ToUpper(genre), 2) {
@@ -2560,7 +2347,6 @@ func FindMoviesGenres(locale, content string) (output []string) {
 	return
 }
 
-// SearchMusic returns a music title and artist found from the given sentence
 func SearchMusic(locale, sentence string) (music, artist string) {
 	words := strings.Split(sentence, " ")
 
@@ -2597,7 +2383,6 @@ func SearchMusic(locale, sentence string) (music, artist string) {
 	return strings.TrimSpace(music), strings.TrimSpace(artist)
 }
 
-// SerializeNames retrieves all the names from ../res/datasets/names.txt and returns an array of names
 func SerializeNames() (names []string) {
 	namesFile := string(FetchFileContent("../res/datasets/names.txt"))
 
@@ -2606,7 +2391,6 @@ func SerializeNames() (names []string) {
 	return
 }
 
-// FindName returns a name found in the given sentence or an empty string if no name has been found
 func FindName(sentence string) string {
 	for _, name := range names {
 		if !strings.Contains(strings.ToLower(" "+sentence+" "), " "+name+" ") {
@@ -2619,7 +2403,6 @@ func FindName(sentence string) string {
 	return ""
 }
 
-// FindRangeLimits finds the range for random numbers and returns a sorted integer array
 func FindRangeLimits(local, entry string) ([]int, error) {
 	decimalsRegex := regexp.MustCompile(decimal)
 	limitStrArr := decimalsRegex.FindAllString(entry, 2)
@@ -2645,8 +2428,6 @@ func FindRangeLimits(local, entry string) ([]int, error) {
 	return limitArr, nil
 }
 
-// SearchReason returns the reason found in the given sentence for the reminders,
-// here is an example: "Remind me that I need to **call mom** tomorrow".
 func SearchReason(locale, sentence string) string {
 	var response []string
 
@@ -2674,15 +2455,12 @@ func SearchReason(locale, sentence string) string {
 	return strings.Join(response, " ")
 }
 
-// SearchTokens searches 2 tokens in the given sentence and returns it.
 func SearchTokens(sentence string) []string {
 	// Search the token with a regex
 	tokenRegex := regexp.MustCompile(`[a-z0-9]{32}`)
 	// Returns the found token
 	return tokenRegex.FindAllString(sentence, 2)
 }
-
-// package spotify
 
 func init() {
 	// Set default value of the callback url
@@ -2704,7 +2482,6 @@ func init() {
 	)
 }
 
-// LoginSpotify logins the user with its token to Spotify
 func LoginSpotify(locale, token string) string {
 	information := RetrieveUserProfile(token)
 
@@ -2737,8 +2514,6 @@ func LoginSpotify(locale, token string) string {
 	return fmt.Sprintf(SelectRandomMessage(locale, "spotify login"), url)
 }
 
-// RenewSpotifyToken renews the spotify token with the user's information token and returns
-// the spotify client.
 func RenewSpotifyToken(token string) spotify.Client {
 	authenticationToken := RetrieveUserProfile(token).StreamingToken
 	client := auth.NewClient(authenticationToken)
@@ -2754,13 +2529,11 @@ func RenewSpotifyToken(token string) spotify.Client {
 	return client
 }
 
-// CheckTokensPresence checks if the spotify tokens are present
 func CheckTokensPresence(token string) bool {
 	information := RetrieveUserProfile(token)
 	return information.StreamingID == "" || information.StreamingSecret == ""
 }
 
-// CompleteAuth completes the Spotify authentication.
 func CompleteAuth(w http.ResponseWriter, r *http.Request) {
 	token, err := auth.Token(state, r)
 
@@ -2784,22 +2557,18 @@ func CompleteAuth(w http.ResponseWriter, r *http.Request) {
 	tokenChannel <- token
 }
 
-// RegisterModule registers the given module in the array
 func RegisterModule(module Module) {
 	modules = append(modules, module)
 }
 
-// SetMessage register the message which will be sent to the client
 func SetMessage(_message string) {
 	message = _message
 }
 
-// GetMessage returns the messages that needs to be sent
 func GetMessage() string {
 	return message
 }
 
-// ExecuteModules will execute all the registered start modules with the user token
 func ExecuteModules(token, locale string) {
 	fmt.Println(color.FgGreen.Render("Executing start modules.."))
 
@@ -2814,7 +2583,6 @@ func init() {
 	})
 }
 
-// CheckReminders will check the dates of the user's reminder and if they are outdated, remove them
 func CheckReminders(token, locale string) {
 	reminders := RetrieveUserProfile(token).ImportantDates
 	var messages []string
@@ -2855,7 +2623,6 @@ func CheckReminders(token, locale string) {
 	}
 }
 
-// RemoveUserReminder removes the reminder at a specific index in the user's information
 func RemoveUserReminder(token string, index int) {
 	UpdateUserProfile(token, func(information UserProfile) UserProfile {
 		reminders := information.ImportantDates
@@ -2875,9 +2642,6 @@ func RemoveUserReminder(token string, index int) {
 	})
 }
 
-// AdvicesReplacer replaces the pattern contained inside the response by a random advice from the api
-// specified by the adviceURL.
-// See modules/modules.go#Module.Replacer() for more details.
 func AdvicesReplacer(locale, entry, response, _ string) (string, string) {
 
 	resp, err := http.Get(adviceURL)
@@ -2901,9 +2665,6 @@ func AdvicesReplacer(locale, entry, response, _ string) (string, string) {
 	return AdvicesTag, fmt.Sprintf(response, advice)
 }
 
-// AreaReplacer replaces the pattern contained inside the response by the area of the country
-// specified in the message.
-// See modules/modules.go#Module.Replacer() for more details.
 func AreaReplacer(locale, entry, response, _ string) (string, string) {
 	country := FindCountry(locale, entry)
 
@@ -2916,9 +2677,6 @@ func AreaReplacer(locale, entry, response, _ string) (string, string) {
 	return AreaTag, fmt.Sprintf(response, ArticleCountries[locale](country.Name[locale]), country.Area)
 }
 
-// CapitalReplacer replaces the pattern contained inside the response by the capital of the country
-// specified in the message.
-// See modules/modules.go#Module.Replacer() for more details.
 func CapitalReplacer(locale, entry, response, _ string) (string, string) {
 	country := FindCountry(locale, entry)
 
@@ -2937,9 +2695,6 @@ func CapitalReplacer(locale, entry, response, _ string) (string, string) {
 	return CapitalTag, fmt.Sprintf(response, countryName, country.Capital)
 }
 
-// CurrencyReplacer replaces the pattern contained inside the response by the currency of the country
-// specified in the message.
-// See modules/modules.go#Module.Replacer() for more details.
 func CurrencyReplacer(locale, entry, response, _ string) (string, string) {
 	country := FindCountry(locale, entry)
 
@@ -2952,9 +2707,6 @@ func CurrencyReplacer(locale, entry, response, _ string) (string, string) {
 	return CurrencyTag, fmt.Sprintf(response, ArticleCountries[locale](country.Name[locale]), country.Currency)
 }
 
-// JokesReplacer replaces the pattern contained inside the response by a random joke from the api
-// specified in jokeURL.
-// See modules/modules.go#Module.Replacer() for more details.
 func JokesReplacer(locale, entry, response, _ string) (string, string) {
 
 	resp, err := http.Get(jokeURL)
@@ -2984,9 +2736,6 @@ func JokesReplacer(locale, entry, response, _ string) (string, string) {
 	return JokesTag, fmt.Sprintf(response, jokeStr)
 }
 
-// MathReplacer replaces the pattern contained inside the response by the answer of the math
-// expression specified in the message.
-// See modules/modules.go#Module.Replacer() for more details.
 func MathReplacer(locale, entry, response, _ string) (string, string) {
 	operation := FindMathOperation(entry)
 
@@ -3017,24 +2766,18 @@ func MathReplacer(locale, entry, response, _ string) (string, string) {
 	return MathTag, fmt.Sprintf(response, result)
 }
 
-// package modulesf
-
-// RegisterModulef registers a module into the map
 func RegisterModulef(locale string, module Modulef) {
 	modulesf[locale] = append(modulesf[locale], module)
 }
 
-// RegisterModulesf registers an array of modulesf into the map
 func RegisterModulesf(locale string, _modules []Modulef) {
 	modulesf[locale] = append(modulesf[locale], _modules...)
 }
 
-// GetModulesf returns all the registered modulesf
 func GetModulesf(locale string) []Modulef {
 	return modulesf[locale]
 }
 
-// GetModuleByTagf returns a module found by the given tag and locale
 func GetModuleByTagf(tag, locale string) Modulef {
 	for _, module := range modulesf[locale] {
 		if tag != module.Tag {
@@ -3047,7 +2790,6 @@ func GetModuleByTagf(tag, locale string) Modulef {
 	return Modulef{}
 }
 
-// ReplaceContentf apply the Replacer of the matching module to the response and returns it
 func ReplaceContentf(locale, tag, entry, response, token string) (string, string) {
 	for _, module := range modulesf[locale] {
 		if module.Tag != tag {
@@ -3060,8 +2802,6 @@ func ReplaceContentf(locale, tag, entry, response, token string) (string, string
 	return tag, response
 }
 
-// GenresReplacer gets the genre specified in the message and adds it to the user information.
-// See modules/modules.go#Module.Replacer() for more details.
 func GenresReplacer(locale, entry, response, token string) (string, string) {
 	genres := FindMoviesGenres(locale, entry)
 
@@ -3087,9 +2827,6 @@ func GenresReplacer(locale, entry, response, token string) (string, string) {
 	return GenresTag, response
 }
 
-// MovieSearchReplacer replaces the patterns contained inside the response by the movie's name
-// and rating from the genre specified in the message.
-// See modules/modules.go#Module.Replacer() for more details.
 func MovieSearchReplacer(locale, entry, response, token string) (string, string) {
 	genres := FindMoviesGenres(locale, entry)
 
@@ -3104,9 +2841,6 @@ func MovieSearchReplacer(locale, entry, response, token string) (string, string)
 	return MoviesTag, fmt.Sprintf(response, movie.Name, movie.Rating)
 }
 
-// MovieSearchFromInformationReplacer replaces the patterns contained inside the response by the movie's name
-// and rating from the genre in the user's information.
-// See modules/modules.go#Module.Replacer() for more details.
 func MovieSearchFromInformationReplacer(locale, _, response, token string) (string, string) {
 	// If there is no genres then reply with a message from ../res/datasets/messages.json
 	genres := RetrieveUserProfile(token).GenrePreferences
@@ -3120,8 +2854,6 @@ func MovieSearchFromInformationReplacer(locale, _, response, token string) (stri
 	return MoviesDataTag, fmt.Sprintf(response, genresJoined, movie.Name, movie.Rating)
 }
 
-// NameGetterReplacer replaces the pattern contained inside the response by the user's name.
-// See modules/modules.go#Module.Replacer() for more details.
 func NameGetterReplacer(locale, _, response, token string) (string, string) {
 	name := RetrieveUserProfile(token).FullName
 
@@ -3133,8 +2865,6 @@ func NameGetterReplacer(locale, _, response, token string) (string, string) {
 	return NameGetterTag, fmt.Sprintf(response, name)
 }
 
-// NameSetterReplacer gets the name specified in the message and save it in the user's information.
-// See modules/modules.go#Module.Replacer() for more details.
 func NameSetterReplacer(locale, entry, response, token string) (string, string) {
 	name := FindName(entry)
 
@@ -3156,8 +2886,6 @@ func NameSetterReplacer(locale, entry, response, token string) (string, string) 
 	return NameSetterTag, fmt.Sprintf(response, name)
 }
 
-// RandomNumberReplacer replaces the pattern contained inside the response by a random number.
-// See modules/modules.go#Module.Replacer() for more details.
 func RandomNumberReplacer(locale, entry, response, _ string) (string, string) {
 	limitArr, err := FindRangeLimits(locale, entry)
 	if err != nil {
@@ -3175,9 +2903,6 @@ func RandomNumberReplacer(locale, entry, response, _ string) (string, string) {
 	return RandomTag, fmt.Sprintf(response, strconv.Itoa(randNum))
 }
 
-// ReminderSetterReplacer replaces the pattern contained inside the response by the date of the reminder
-// and its reason.
-// See modules/modules.go#Module.Replacer() for more details.
 func ReminderSetterReplacer(locale, entry, response, token string) (string, string) {
 	// Search the time and
 	sentence, date := SearchTime(locale, entry)
@@ -3199,9 +2924,6 @@ func ReminderSetterReplacer(locale, entry, response, token string) (string, stri
 	return ReminderSetterTag, fmt.Sprintf(response, reason, formattedDate)
 }
 
-// ReminderGetterReplacer gets the reminders in the user's information and replaces the pattern in the
-// response patterns by the current reminders
-// See modules/modules.go#Module.Replacer() for more details.
 func ReminderGetterReplacer(locale, _, response, token string) (string, string) {
 	reminders := RetrieveUserProfile(token).ImportantDates
 	var formattedReminders []string
@@ -3224,8 +2946,6 @@ func ReminderGetterReplacer(locale, _, response, token string) (string, string) 
 	return ReminderGetterTag, fmt.Sprintf(response, strings.Join(formattedReminders, " "))
 }
 
-// SpotifySetterReplacer gets the tokens in the user entry and save them into the client's information.
-// See modules/modules.go#Module.Replacer() for more details.
 func SpotifySetterReplacer(locale, entry, _, token string) (string, string) {
 	spotifyTokens := SearchTokens(entry)
 
@@ -3245,8 +2965,6 @@ func SpotifySetterReplacer(locale, entry, _, token string) (string, string) {
 	return SpotifySetterTag, LoginSpotify(locale, token)
 }
 
-// SpotifyPlayerReplacer plays a specified music on the user's spotify
-// See modules/modules.go#Module.Replacer() for more details.
 func SpotifyPlayerReplacer(locale, entry, response, token string) (string, string) {
 	// Return if the tokens are not set
 	if CheckTokensPresence(token) {
@@ -3281,7 +2999,6 @@ func SpotifyPlayerReplacer(locale, entry, response, token string) (string, strin
 	return SpotifyPlayerTag, fmt.Sprintf(response, track.Name, track.Artists[0].Name)
 }
 
-// SearchTrack searches for a given track name and returns the found track and the error
 func SearchTrack(client spotify.Client, content string) (spotify.FullTrack, error) {
 	// Get the results from a track search with the given content
 	results, err := client.Search(content, spotify.SearchTypeTrack)
@@ -3298,7 +3015,6 @@ func SearchTrack(client spotify.Client, content string) (spotify.FullTrack, erro
 	return results.Tracks.Tracks[0], nil
 }
 
-// SearchDevice searches for a device name inside the given sentence and returns it
 func SearchDevice(client spotify.Client, content string) spotify.PlayerDevice {
 	devices, _ := client.PlayerDevices()
 
@@ -3566,7 +3282,6 @@ func init() {
 	ArticleCountries["en"] = ArticleCountriesOut
 }
 
-// ArticleCountriesOut returns the country with its article in front.
 func ArticleCountriesOut(name string) string {
 	if name == "United States" {
 		return "the " + name
