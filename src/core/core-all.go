@@ -70,7 +70,6 @@ var (
 
 var intents = map[string][]Intent{}
 
-
 var userCache = gocache.New(5*time.Minute, 5*time.Minute)
 
 // DontUnderstand contains the tag for the don't understand messages
@@ -118,20 +117,389 @@ var Locales = []Locale{
 	// },
 }
 
-
 const jokeURL = "https://official-joke-api.appspot.com/random_joke"
 
 // JokesTag is the intent tag for its module
 var JokesTag = "jokes"
 
-
 var modulesf = map[string][]Modulef{}
 
+// ReasonKeywords is for having the keywords in different languages
+var ReasonKeywords = map[string]ReasonKeyword{
+	"en": {
+		That: "that",
+		To:   "to",
+	},
+	// "de": {
+	// 	That: "das",
+	// 	To:   "zu",
+	// },
+	// "fr": {
+	// 	That: "que",
+	// 	To:   "de",
+	// },
+	// "es": {
+	// 	That: "que",
+	// 	To:   "para",
+	// },
+	// "ca": {
+	// 	That: "que",
+	// 	To:   "a",
+	// },
+	// "it": {
+	// 	That: "quel",
+	// 	To:   "per",
+	// },
+	// "tr": {
+	// 	That: "için",
+	// 	To:   "sebebiyle",
+	// },
+	// "nl": {
+	// 	That: "dat",
+	// 	To:   "naar",
+	// },
+	// "el": {
+	// 	That: "το οποίο",
+	// 	To:   "στο",
+	// },
+}
+
+// SpotifyKeyword is the map for having the music keywords in different languages
+var SpotifyKeyword = map[string]SpotifyKeywords{
+	"en": {
+		Play: "play",
+		From: "from",
+		On:   "on",
+	},
+	// "de": {
+	// 	Play: "spiele",
+	// 	From: "von",
+	// 	On:   "auf",
+	// },
+	// "fr": {
+	// 	Play: "joue",
+	// 	From: "de",
+	// 	On:   "sur",
+	// },
+	// "es": {
+	// 	Play: "Juega",
+	// 	From: "de",
+	// 	On:   "en",
+	// },
+	// "ca": {
+	// 	Play: "Juga",
+	// 	From: "de",
+	// 	On:   "a",
+	// },
+	// "it": {
+	// 	Play: "suona",
+	// 	From: "da",
+	// 	On:   "a",
+	// },
+	// "tr": {
+	// 	Play: "Başlat",
+	// 	From: "dan",
+	// 	On:   "kadar",
+	// },
+	// "nl": {
+	// 	Play: "speel",
+	// 	From: "van",
+	// 	On:   "op",
+	// },
+	// "el": {
+	// 	Play: "αναπαραγωγή",
+	// 	From: "από",
+	// 	On:   "στο",
+	// },
+}
 
 var (
 	modules []Module
 	message string
 )
+
+var (
+	// MoviesGenres initializes movies genres in different languages
+	MoviesGenres = map[string][]string{
+		"en": {
+			"Action", "Adventure", "Animation", "Children", "Comedy", "Crime", "Documentary", "Drama", "Fantasy",
+			"Film-Noir", "Horror", "Musical", "Mystery", "Romance", "Sci-Fi", "Thriller", "War", "Western",
+		},
+		// "de": {
+		// 	"Action", "Abenteuer", "Animation", "Kinder", "Komödie", "Verbrechen", "Dokumentarfilm", "Drama", "Fantasie",
+		// 	"Film-Noir", "Horror", "Musical", "Mystery", "Romance", "Sci-Fi", "Thriller", "Krieg", "Western",
+		// },
+		// "fr": {
+		// 	"Action", "Aventure", "Animation", "Enfant", "Comédie", "Crime", "Documentaire", "Drama", "Fantaisie",
+		// 	"Film-Noir", "Horreur", "Musical", "Mystère", "Romance", "Science-fiction", "Thriller", "Guerre", "Western",
+		// },
+		// "es": {
+		// 	"Acción", "Aventura", "Animación", "Infantil", "Comedia", "Crimen", "Documental", "Drama", "Fantasía",
+		// 	"Cine Negro", "Terror", "Musical", "Misterio", "Romance", "Ciencia Ficción", "Thriller", "Guerra", "Western",
+		// },
+		// "ca": {
+		// 	"Acció", "Aventura", "Animació", "Nen", "Comèdia", "Crim", "Documental", "Drama", "Fantasia",
+		// 	"Film-Noir", "Horror", "Musical", "Misteri", "Romanç", "Ciència-ficció", "Thriller", "War", "Western",
+		// },
+		// "it": {
+		// 	"Azione", "Avventura", "Animazione", "Bambini", "Commedia", "Poliziesco", "Documentario", "Dramma", "Fantasia",
+		// 	"Film-Noir", "Orrore", "Musical", "Mistero", "Romantico", "Fantascienza", "Giallo", "Guerra", "Western",
+		// },
+		// "nl": {
+		// 	"Actie", "Avontuur", "Animatie", "Kinderen", "Komedie", "Krimi", "Documentaire", "Drama", "Fantasie",
+		// 	"Film-Noir", "Horror", "Musical", "Mysterie", "Romantiek", "Sci-Fi", "Thriller", "Oorlog", "Western",
+		// },
+		// "el": {
+		// 	"Δράση", "Περιπέτεια", "Κινούμενα Σχέδια", "Παιδικά", "Κωμωδία", "Έγκλημα", "Ντοκιμαντέρ", "Δράμα", "Φαντασία",
+		// 	"Film-Noir", "Τρόμου", "Μουσική", "Μυστηρίου", "Ρομαντική", "Επιστημονική Φαντασία", "Θρίλλερ", "Πολέμου", "Western",
+		// },
+	}
+	movies = SerializeMovies()
+)
+
+var countries = SerializeCountries()
+
+var rules []Rule
+
+const day = time.Hour * 24
+
+// RuleTranslations are the translations of the rules in different languages
+var RuleTranslations = map[string]RuleTranslation{
+	"en": {
+		DaysOfWeek: []string{
+			"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+		},
+		Months: []string{
+			"january", "february", "march", "april", "may", "june", "july",
+			"august", "september", "october", "november", "december",
+		},
+		RuleToday:         `today|tonight`,
+		RuleTomorrow:      `(after )?tomorrow`,
+		RuleAfterTomorrow: "after",
+		RuleDayOfWeek:     `(next )?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)`,
+		RuleNextDayOfWeek: "next",
+		RuleNaturalDate:   `january|february|march|april|may|june|july|august|september|october|november|december`,
+	},
+	// "de": {
+	// 	DaysOfWeek: []string{
+	// 		"Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag",
+	// 	},
+	// 	Months: []string{
+	// 		"Januar", "Februar", "Marsch", "April", "Mai", "Juni", "Juli",
+	// 		"August", "September", "Oktober", "November", "Dezember",
+	// 	},
+	// 	RuleToday:         `heute|abends`,
+	// 	RuleTomorrow:      `(nach )?tomorrow`,
+	// 	RuleAfterTomorrow: "nach",
+	// 	RuleDayOfWeek:     `(nächsten )?(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)`,
+	// 	RuleNextDayOfWeek: "nächste",
+	// 	RuleNaturalDate:   `Januar|Februar|März|April|Mai|Juli|Juli|August|September|Oktober|November|Dezember`,
+	// },
+	// "fr": {
+	// 	DaysOfWeek: []string{
+	// 		"lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche",
+	// 	},
+	// 	Months: []string{
+	// 		"janvier", "février", "mars", "avril", "mai", "juin", "juillet",
+	// 		"août", "septembre", "octobre", "novembre", "décembre",
+	// 	},
+	// 	RuleToday:         `aujourd'hui|ce soir`,
+	// 	RuleTomorrow:      `(après )?demain`,
+	// 	RuleAfterTomorrow: "après",
+	// 	RuleDayOfWeek:     `(lundi|mardi|mecredi|jeudi|vendredi|samedi|dimanche)( prochain)?`,
+	// 	RuleNextDayOfWeek: "prochain",
+	// 	RuleNaturalDate:   `janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre`,
+	// },
+	// "es": {
+	// 	DaysOfWeek: []string{
+	// 		"lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo",
+	// 	},
+	// 	Months: []string{
+	// 		"enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
+	// 		"agosto", "septiembre", "octubre", "noviembre", "diciembre",
+	// 	},
+	// 	RuleToday:         `hoy|esta noche`,
+	// 	RuleTomorrow:      `(pasado )?mañana`,
+	// 	RuleAfterTomorrow: "pasado",
+	// 	RuleDayOfWeek:     `(el )?(proximo )?(lunes|martes|miercoles|jueves|viernes|sabado|domingo))`,
+	// 	RuleNextDayOfWeek: "proximo",
+	// 	RuleNaturalDate:   `enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre`,
+	// },
+	// "ca": {
+	// 	DaysOfWeek: []string{
+	// 		"dilluns", "dimarts", "dimecres", "dijous", "divendres", "dissabte", "diumenge",
+	// 	},
+	// 	Months: []string{
+	// 		"gener", "febrer", "març", "abril", "maig", "juny", "juliol",
+	// 		"agost", "setembre", "octubre", "novembre", "desembre",
+	// 	},
+	// 	RuleToday:         `avui|aquesta nit`,
+	// 	RuleTomorrow:      `((després )?(de )?demà`,
+	// 	RuleAfterTomorrow: "després",
+	// 	RuleDayOfWeek:     `(el )?(proper )?(dilluns|dimarts|dimecres|dijous|divendres|dissabte|diumenge))`,
+	// 	RuleNextDayOfWeek: "proper",
+	// 	RuleNaturalDate:   `gener|febrer|març|abril|maig|juny|juliol|agost|setembre|octubre|novembre|desembre`,
+	// },
+	// "nl": {
+	// 	DaysOfWeek: []string{
+	// 		"maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag",
+	// 	},
+	// 	Months: []string{
+	// 		"januari", "februari", "maart", "april", "mei", "juni", "juli",
+	// 		"augustus", "september", "oktober", "november", "december",
+	// 	},
+	// 	RuleToday:         `vandaag|vanavond`,
+	// 	RuleTomorrow:      `(na )?morgen`,
+	// 	RuleAfterTomorrow: "na",
+	// 	RuleDayOfWeek:     `(volgende )?(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag)`,
+	// 	RuleNextDayOfWeek: "volgende",
+	// 	RuleNaturalDate:   `januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december`,
+	// },
+	// "el": {
+	// 	DaysOfWeek: []string{
+	// 		"δευτέρα", "τρίτη", "τετάρτη", "πέμπτη", "παρασκευή", "σάββατο", "κυριακή",
+	// 	},
+	// 	Months: []string{
+	// 		"ιανουάριος", "φεβρουάριος", "μάρτιος", "απρίλιος", "μάιος", "ιούνιος", "ιούλιος",
+	// 		"αύγουστος", "σεπτέμβριος", "οκτώβριος", "νοέμβριος", "δεκέμβριος",
+	// 	},
+	// 	RuleToday:         `σήμερα|απόψε`,
+	// 	RuleTomorrow:      `(μεθ )?άυριο`,
+	// 	RuleAfterTomorrow: "μεθ",
+	// 	RuleDayOfWeek:     `(επόμενη )?(δευτέρα|τρίτη|τετάρτη|πέμπτη|παρασκευή|σάββατο|κυριακή)`,
+	// 	RuleNextDayOfWeek: "επόμενη",
+	// 	RuleNaturalDate:   `ιανουάριος|φεβρουάριος|μάρτιος|απρίλιος|μάιος|ιούνιος|ιούλιος|αύγουστος|σεπτέμβριος|οκτώβριος|νοέμβριος|δεκέμβριος`,
+	// },
+}
+
+var daysOfWeek = map[string]time.Weekday{
+	"monday":    time.Monday,
+	"tuesday":   time.Tuesday,
+	"wednesday": time.Wednesday,
+	"thursday":  time.Thursday,
+	"friday":    time.Friday,
+	"saturday":  time.Saturday,
+	"sunday":    time.Sunday,
+}
+
+// PatternTranslation are the map of regexs in different languages
+var PatternTranslation = map[string]PatternTranslations{
+	"en": {
+		DateRegex: `(of )?(the )?((after )?tomorrow|((today|tonight)|(next )?(monday|tuesday|wednesday|thursday|friday|saturday|sunday))|(\d{2}|\d)(th|rd|st|nd)? (of )?(january|february|march|april|may|june|july|august|september|october|november|december)|((\d{2}|\d)/(\d{2}|\d)))`,
+		TimeRegex: `(at )?(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`,
+	},
+	// "de": {
+	// 	DateRegex: `(von )?(das )?((nach )?morgen|((heute|abends)|(nächsten )?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag))|(\d{2}|\d)(th|rd|st|nd)? (of )?(januar|februar|märz|april|mai|juli|juli|august|september|oktober|november|dezember)|((\d{2}|\d)/(\d{2}|\d)))`,
+	// 	TimeRegex: `(um )?(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`,
+	// },
+	// "fr": {
+	// 	DateRegex: `(le )?(après )?demain|((aujourd'hui'|ce soir)|(lundi|mardi|mecredi|jeudi|vendredi|samedi|dimanche)( prochain)?|(\d{2}|\d) (janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)|((\d{2}|\d)/(\d{2}|\d)))`,
+	// 	TimeRegex: `(à )?(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`,
+	// },
+	// "es": {
+	// 	DateRegex: `(el )?((pasado )?mañana|((hoy|esta noche)|(el )?(proximo )?(lunes|martes|miercoles|jueves|viernes|sabado|domingo))|(\d{2}|\d) (de )?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)|((\d{2}|\d)/(\d{2}|\d)))`,
+	// 	TimeRegex: `(a )?(las )?(\d{2}|\d)(:\d{2}|\d)?( )?(de )?(la )?(pm|am|p\.m|a\.m|tarde|mañana)`,
+	// },
+	// "ca": {
+	// 	DateRegex: `(el )?((després )?(de )?demà|((avui|aquesta nit)|(el )?(proper )?(dilluns|dimarts|dimecres|dijous|divendres|dissabte|diumenge))|(\d{2}|\d) (de )?(gener|febrer|març|abril|maig|juny|juliol|agost|setembre|octubre|novembre|desembre)|((\d{2}|\d)/(\d{2}|\d)))`,
+	// 	TimeRegex: `(a )?(les )?(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`,
+	// },
+	// "nl": {
+	// 	DateRegex: `(van )?(de )?((na )?morgen|((vandaag|vanavond)|(volgende )?(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag))|(\d{2}|\d)(te|de)? (vab )?(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)|((\d{2}|\d)/(\d{2}|\d)))`,
+	// 	TimeRegex: `(om )?(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`,
+	// },
+	// "el": {
+	// 	DateRegex: `(από )?(το )?((μεθ )?αύριο|((σήμερα|απόψε)|(επόμενη )?(δευτέρα|τρίτη|τετάρτη|πέμπτη|παρασκευή|σάββατο|κυριακή))|(\d{2}|\d)(η)? (of )?(ιανουάριος|φεβρουάριος|μάρτιος|απρίλιος|μάιος|ιούνιος|ιούλιος|αύγουστος|σεπτέμβριος|οκτώβριος|νοέμβριος|δεκέμβριος)|((\d{2}|\d)/(\d{2}|\d)))`,
+	// 	TimeRegex: `(at )?(\d{2}|\d)(:\d{2}|\d)?( )?(μμ|πμ|μ\.μ|π\.μ)`,
+	// },
+}
+
+var fileName = "../res/authentication.txt"
+
+var authenticationHash []byte
+
+// MathDecimals is the map for having the regex on decimals in different languages
+var MathDecimals = map[string]string{
+	"en": `(\d+( |-)decimal(s)?)|(number (of )?decimal(s)? (is )?\d+)`,
+	// "de": `(\d+( |-)decimal(s)?)|(nummer (von )?decimal(s)? (ist )?\d+)`,
+	// "fr": `(\d+( |-)decimale(s)?)|(nombre (de )?decimale(s)? (est )?\d+)`,
+	// "es": `(\d+( |-)decimale(s)?)|(numero (de )?decimale(s)? (de )?\d+)`,
+	// "ca": `(\d+( |-)decimal(s)?)|(nombre (de )?decimal(s)? (de )?\d+)`,
+	// "it": `(\d+( |-)decimale(s)?)|(numero (di )?decimale(s)? (è )?\d+)`,
+	// "tr": `(\d+( |-)desimal(s)?)|(numara (dan )?desimal(s)? (mı )?\d+)`,
+	// "nl": `(\d+( |-)decimal(en)?)|(nummer (van )?decimal(en)? (is )?\d+)`,
+	// "el": `(\d+( |-)δεκαδικ(ό|ά)?)|(αριθμός (από )?δεκαδικ(ό|ά)? (είναι )?\d+)`,
+}
+
+var names = SerializeNames()
+
+var decimal = "\\b\\d+([\\.,]\\d+)?"
+
+var (
+	redirectURL = os.Getenv("REDIRECT_URL")
+	callbackURL = os.Getenv("CALLBACK_URL")
+
+	tokenChannel = make(chan *oauth2.Token)
+	state        = "abc123"
+	auth         spotify.Authenticator
+)
+
+const adviceURL = "https://api.adviceslip.com/advice"
+
+// AdvicesTag is the intent tag for its module
+var AdvicesTag = "advices"
+
+var (
+	// SpotifySetterTag is the intent tag for its module
+	SpotifySetterTag = "spotify setter"
+	// SpotifyPlayerTag is the intent tag for its module
+	SpotifyPlayerTag = "spotify player"
+)
+
+var (
+	// ReminderSetterTag is the intent tag for its module
+	ReminderSetterTag = "reminder setter"
+	// ReminderGetterTag is the intent tag for its module
+	ReminderGetterTag = "reminder getter"
+)
+
+var (
+	// NameGetterTag is the intent tag for its module
+	NameGetterTag = "name getter"
+	// NameSetterTag is the intent tag for its module
+	NameSetterTag = "name setter"
+)
+
+// RandomTag is the intent tag for its module
+var RandomTag = "random number"
+
+var (
+	// GenresTag is the intent tag for its module
+	GenresTag = "movies genres"
+	// MoviesTag is the intent tag for its module
+	MoviesTag = "movies search"
+	// MoviesAlreadyTag is the intent tag for its module
+	MoviesAlreadyTag = "already seen movie"
+	// MoviesDataTag is the intent tag for its module
+	MoviesDataTag = "movies search from data"
+)
+
+// MathTag is the intent tag for its module
+var MathTag = "math"
+
+// CurrencyTag is the intent tag for its module
+var CurrencyTag = "currency"
+
+var (
+	// CapitalTag is the intent tag for its module
+	CapitalTag = "capital"
+	// ArticleCountries is the map of functions to find the article in front of a country
+	// in different languages
+	ArticleCountries = map[string]func(string) string{}
+)
+
+// AreaTag is the intent tag for its module
+var AreaTag = "area"
 
 // ==================================================
 
@@ -287,13 +655,11 @@ type DeleteRequest struct {
 	Tag string `json:"tag"`
 }
 
-
 // A Locale is a registered locale in the file
 type Locale struct {
 	Tag  string
 	Name string
 }
-
 
 // Modulef is a structure for dynamic intents with a Tag, some Patterns and Responses and
 // a Replacer function to execute the dynamic changes.
@@ -316,6 +682,57 @@ type Joke struct {
 // A Module is a module that will be executed when a connection is opened by a user
 type Module struct {
 	Action func(string, string)
+}
+
+// ReasonKeyword are used to find reason for different languages
+type ReasonKeyword struct {
+	That string
+	To   string
+}
+
+// SpotifyKeywords are the keywords used to get music name
+type SpotifyKeywords struct {
+	Play string
+	From string
+	On   string
+}
+
+// Movie is the serializer from ../res/datasets/movies.csv
+type Movie struct {
+	Name   string
+	Genres []string
+	Rating float64
+}
+
+// Country is the serializer of the countries.json file in the res folder
+type Country struct {
+	Name     map[string]string `json:"name"`
+	Capital  string            `json:"capital"`
+	Code     string            `json:"code"`
+	Area     float64           `json:"area"`
+	Currency string            `json:"currency"`
+}
+
+// A Rule is a function that takes the given sentence and tries to parse a specific
+// rule to return a date, if not, the date is empty.
+type Rule func(string, string) time.Time
+
+// A RuleTranslation is all the texts/regexs to match the dates
+type RuleTranslation struct {
+	DaysOfWeek        []string
+	Months            []string
+	RuleToday         string
+	RuleTomorrow      string
+	RuleAfterTomorrow string
+	RuleDayOfWeek     string
+	RuleNextDayOfWeek string
+	RuleNaturalDate   string
+}
+
+// PatternTranslations are the translations of the regexs for dates
+type PatternTranslations struct {
+	DateRegex string
+	TimeRegex string
 }
 
 // ==================================================
@@ -1390,7 +1807,6 @@ func Organize(locale string) (words, classes []string, documents []Document) {
 	return words, classes, documents
 }
 
-
 // NewSentence returns a Sentence object where the content has been arranged
 func NewSentence(locale, content string) (sentence Sentence) {
 	sentence = Sentence{
@@ -1504,10 +1920,6 @@ func LogResults(locale, entry string, results []Result) {
 	}
 }
 
-var fileName = "../res/authentication.txt"
-
-var authenticationHash []byte
-
 // GenerateToken generates a random token of 30 characters and returns it
 func GenerateToken() string {
 	b := make([]byte, 30)
@@ -1567,7 +1979,6 @@ func Authenticate() {
 
 	authenticationHash = hash
 }
-
 
 // WriteIntents writes the given intents to the intents file
 func WriteIntents(locale string, intents []Intent) {
@@ -1734,44 +2145,6 @@ func Exists(tag string) bool {
 	return false
 }
 
-// PatternTranslation are the map of regexs in different languages
-var PatternTranslation = map[string]PatternTranslations{
-	"en": {
-		DateRegex: `(of )?(the )?((after )?tomorrow|((today|tonight)|(next )?(monday|tuesday|wednesday|thursday|friday|saturday|sunday))|(\d{2}|\d)(th|rd|st|nd)? (of )?(january|february|march|april|may|june|july|august|september|october|november|december)|((\d{2}|\d)/(\d{2}|\d)))`,
-		TimeRegex: `(at )?(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`,
-	},
-	// "de": {
-	// 	DateRegex: `(von )?(das )?((nach )?morgen|((heute|abends)|(nächsten )?(montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag))|(\d{2}|\d)(th|rd|st|nd)? (of )?(januar|februar|märz|april|mai|juli|juli|august|september|oktober|november|dezember)|((\d{2}|\d)/(\d{2}|\d)))`,
-	// 	TimeRegex: `(um )?(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`,
-	// },
-	// "fr": {
-	// 	DateRegex: `(le )?(après )?demain|((aujourd'hui'|ce soir)|(lundi|mardi|mecredi|jeudi|vendredi|samedi|dimanche)( prochain)?|(\d{2}|\d) (janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)|((\d{2}|\d)/(\d{2}|\d)))`,
-	// 	TimeRegex: `(à )?(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`,
-	// },
-	// "es": {
-	// 	DateRegex: `(el )?((pasado )?mañana|((hoy|esta noche)|(el )?(proximo )?(lunes|martes|miercoles|jueves|viernes|sabado|domingo))|(\d{2}|\d) (de )?(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)|((\d{2}|\d)/(\d{2}|\d)))`,
-	// 	TimeRegex: `(a )?(las )?(\d{2}|\d)(:\d{2}|\d)?( )?(de )?(la )?(pm|am|p\.m|a\.m|tarde|mañana)`,
-	// },
-	// "ca": {
-	// 	DateRegex: `(el )?((després )?(de )?demà|((avui|aquesta nit)|(el )?(proper )?(dilluns|dimarts|dimecres|dijous|divendres|dissabte|diumenge))|(\d{2}|\d) (de )?(gener|febrer|març|abril|maig|juny|juliol|agost|setembre|octubre|novembre|desembre)|((\d{2}|\d)/(\d{2}|\d)))`,
-	// 	TimeRegex: `(a )?(les )?(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`,
-	// },
-	// "nl": {
-	// 	DateRegex: `(van )?(de )?((na )?morgen|((vandaag|vanavond)|(volgende )?(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag))|(\d{2}|\d)(te|de)? (vab )?(januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december)|((\d{2}|\d)/(\d{2}|\d)))`,
-	// 	TimeRegex: `(om )?(\d{2}|\d)(:\d{2}|\d)?( )?(pm|am|p\.m|a\.m)`,
-	// },
-	// "el": {
-	// 	DateRegex: `(από )?(το )?((μεθ )?αύριο|((σήμερα|απόψε)|(επόμενη )?(δευτέρα|τρίτη|τετάρτη|πέμπτη|παρασκευή|σάββατο|κυριακή))|(\d{2}|\d)(η)? (of )?(ιανουάριος|φεβρουάριος|μάρτιος|απρίλιος|μάιος|ιούνιος|ιούλιος|αύγουστος|σεπτέμβριος|οκτώβριος|νοέμβριος|δεκέμβριος)|((\d{2}|\d)/(\d{2}|\d)))`,
-	// 	TimeRegex: `(at )?(\d{2}|\d)(:\d{2}|\d)?( )?(μμ|πμ|μ\.μ|π\.μ)`,
-	// },
-}
-
-// PatternTranslations are the translations of the regexs for dates
-type PatternTranslations struct {
-	DateRegex string
-	TimeRegex string
-}
-
 // SearchTime returns the found date in the given sentence and the sentence without the date, if no date has
 // been found, it returns an empty date and the given sentence.
 func SearchTime(locale, sentence string) (string, time.Time) {
@@ -1818,148 +2191,9 @@ func DeleteTimes(locale, sentence string) string {
 	return strings.TrimSpace(sentence)
 }
 
-// A Rule is a function that takes the given sentence and tries to parse a specific
-// rule to return a date, if not, the date is empty.
-type Rule func(string, string) time.Time
-
-var rules []Rule
-
 // RegisterRule takes a rule in parameter and register it to the array of rules
 func RegisterRule(rule Rule) {
 	rules = append(rules, rule)
-}
-
-const day = time.Hour * 24
-
-// RuleTranslations are the translations of the rules in different languages
-var RuleTranslations = map[string]RuleTranslation{
-	"en": {
-		DaysOfWeek: []string{
-			"monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
-		},
-		Months: []string{
-			"january", "february", "march", "april", "may", "june", "july",
-			"august", "september", "october", "november", "december",
-		},
-		RuleToday:         `today|tonight`,
-		RuleTomorrow:      `(after )?tomorrow`,
-		RuleAfterTomorrow: "after",
-		RuleDayOfWeek:     `(next )?(monday|tuesday|wednesday|thursday|friday|saturday|sunday)`,
-		RuleNextDayOfWeek: "next",
-		RuleNaturalDate:   `january|february|march|april|may|june|july|august|september|october|november|december`,
-	},
-	// "de": {
-	// 	DaysOfWeek: []string{
-	// 		"Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag",
-	// 	},
-	// 	Months: []string{
-	// 		"Januar", "Februar", "Marsch", "April", "Mai", "Juni", "Juli",
-	// 		"August", "September", "Oktober", "November", "Dezember",
-	// 	},
-	// 	RuleToday:         `heute|abends`,
-	// 	RuleTomorrow:      `(nach )?tomorrow`,
-	// 	RuleAfterTomorrow: "nach",
-	// 	RuleDayOfWeek:     `(nächsten )?(Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag)`,
-	// 	RuleNextDayOfWeek: "nächste",
-	// 	RuleNaturalDate:   `Januar|Februar|März|April|Mai|Juli|Juli|August|September|Oktober|November|Dezember`,
-	// },
-	// "fr": {
-	// 	DaysOfWeek: []string{
-	// 		"lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche",
-	// 	},
-	// 	Months: []string{
-	// 		"janvier", "février", "mars", "avril", "mai", "juin", "juillet",
-	// 		"août", "septembre", "octobre", "novembre", "décembre",
-	// 	},
-	// 	RuleToday:         `aujourd'hui|ce soir`,
-	// 	RuleTomorrow:      `(après )?demain`,
-	// 	RuleAfterTomorrow: "après",
-	// 	RuleDayOfWeek:     `(lundi|mardi|mecredi|jeudi|vendredi|samedi|dimanche)( prochain)?`,
-	// 	RuleNextDayOfWeek: "prochain",
-	// 	RuleNaturalDate:   `janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre`,
-	// },
-	// "es": {
-	// 	DaysOfWeek: []string{
-	// 		"lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo",
-	// 	},
-	// 	Months: []string{
-	// 		"enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
-	// 		"agosto", "septiembre", "octubre", "noviembre", "diciembre",
-	// 	},
-	// 	RuleToday:         `hoy|esta noche`,
-	// 	RuleTomorrow:      `(pasado )?mañana`,
-	// 	RuleAfterTomorrow: "pasado",
-	// 	RuleDayOfWeek:     `(el )?(proximo )?(lunes|martes|miercoles|jueves|viernes|sabado|domingo))`,
-	// 	RuleNextDayOfWeek: "proximo",
-	// 	RuleNaturalDate:   `enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre`,
-	// },
-	// "ca": {
-	// 	DaysOfWeek: []string{
-	// 		"dilluns", "dimarts", "dimecres", "dijous", "divendres", "dissabte", "diumenge",
-	// 	},
-	// 	Months: []string{
-	// 		"gener", "febrer", "març", "abril", "maig", "juny", "juliol",
-	// 		"agost", "setembre", "octubre", "novembre", "desembre",
-	// 	},
-	// 	RuleToday:         `avui|aquesta nit`,
-	// 	RuleTomorrow:      `((després )?(de )?demà`,
-	// 	RuleAfterTomorrow: "després",
-	// 	RuleDayOfWeek:     `(el )?(proper )?(dilluns|dimarts|dimecres|dijous|divendres|dissabte|diumenge))`,
-	// 	RuleNextDayOfWeek: "proper",
-	// 	RuleNaturalDate:   `gener|febrer|març|abril|maig|juny|juliol|agost|setembre|octubre|novembre|desembre`,
-	// },
-	// "nl": {
-	// 	DaysOfWeek: []string{
-	// 		"maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag",
-	// 	},
-	// 	Months: []string{
-	// 		"januari", "februari", "maart", "april", "mei", "juni", "juli",
-	// 		"augustus", "september", "oktober", "november", "december",
-	// 	},
-	// 	RuleToday:         `vandaag|vanavond`,
-	// 	RuleTomorrow:      `(na )?morgen`,
-	// 	RuleAfterTomorrow: "na",
-	// 	RuleDayOfWeek:     `(volgende )?(maandag|dinsdag|woensdag|donderdag|vrijdag|zaterdag|zondag)`,
-	// 	RuleNextDayOfWeek: "volgende",
-	// 	RuleNaturalDate:   `januari|februari|maart|april|mei|juni|juli|augustus|september|oktober|november|december`,
-	// },
-	// "el": {
-	// 	DaysOfWeek: []string{
-	// 		"δευτέρα", "τρίτη", "τετάρτη", "πέμπτη", "παρασκευή", "σάββατο", "κυριακή",
-	// 	},
-	// 	Months: []string{
-	// 		"ιανουάριος", "φεβρουάριος", "μάρτιος", "απρίλιος", "μάιος", "ιούνιος", "ιούλιος",
-	// 		"αύγουστος", "σεπτέμβριος", "οκτώβριος", "νοέμβριος", "δεκέμβριος",
-	// 	},
-	// 	RuleToday:         `σήμερα|απόψε`,
-	// 	RuleTomorrow:      `(μεθ )?άυριο`,
-	// 	RuleAfterTomorrow: "μεθ",
-	// 	RuleDayOfWeek:     `(επόμενη )?(δευτέρα|τρίτη|τετάρτη|πέμπτη|παρασκευή|σάββατο|κυριακή)`,
-	// 	RuleNextDayOfWeek: "επόμενη",
-	// 	RuleNaturalDate:   `ιανουάριος|φεβρουάριος|μάρτιος|απρίλιος|μάιος|ιούνιος|ιούλιος|αύγουστος|σεπτέμβριος|οκτώβριος|νοέμβριος|δεκέμβριος`,
-	// },
-}
-
-// A RuleTranslation is all the texts/regexs to match the dates
-type RuleTranslation struct {
-	DaysOfWeek        []string
-	Months            []string
-	RuleToday         string
-	RuleTomorrow      string
-	RuleAfterTomorrow string
-	RuleDayOfWeek     string
-	RuleNextDayOfWeek string
-	RuleNaturalDate   string
-}
-
-var daysOfWeek = map[string]time.Weekday{
-	"monday":    time.Monday,
-	"tuesday":   time.Tuesday,
-	"wednesday": time.Wednesday,
-	"thursday":  time.Thursday,
-	"friday":    time.Friday,
-	"saturday":  time.Saturday,
-	"sunday":    time.Sunday,
 }
 
 func init() {
@@ -2165,17 +2399,6 @@ func RuleTime(sentence string) time.Time {
 	return response
 }
 
-// Country is the serializer of the countries.json file in the res folder
-type Country struct {
-	Name     map[string]string `json:"name"`
-	Capital  string            `json:"capital"`
-	Code     string            `json:"code"`
-	Area     float64           `json:"area"`
-	Currency string            `json:"currency"`
-}
-
-var countries = SerializeCountries()
-
 // SerializeCountries returns a list of countries, serialized from `../res/datasets/countries.json`
 func SerializeCountries() (countries []Country) {
 	err := json.Unmarshal(FetchFileContent("../res/datasets/countries.json"), &countries)
@@ -2248,25 +2471,6 @@ func LevenshteinContains(sentence, matching string, rate int) bool {
 	return false
 }
 
-// import (
-// 	"regexp"
-// 	"strconv"
-// 	"strings"
-// )
-
-// MathDecimals is the map for having the regex on decimals in different languages
-var MathDecimals = map[string]string{
-	"en": `(\d+( |-)decimal(s)?)|(number (of )?decimal(s)? (is )?\d+)`,
-	// "de": `(\d+( |-)decimal(s)?)|(nummer (von )?decimal(s)? (ist )?\d+)`,
-	// "fr": `(\d+( |-)decimale(s)?)|(nombre (de )?decimale(s)? (est )?\d+)`,
-	// "es": `(\d+( |-)decimale(s)?)|(numero (de )?decimale(s)? (de )?\d+)`,
-	// "ca": `(\d+( |-)decimal(s)?)|(nombre (de )?decimal(s)? (de )?\d+)`,
-	// "it": `(\d+( |-)decimale(s)?)|(numero (di )?decimale(s)? (è )?\d+)`,
-	// "tr": `(\d+( |-)desimal(s)?)|(numara (dan )?desimal(s)? (mı )?\d+)`,
-	// "nl": `(\d+( |-)decimal(en)?)|(nummer (van )?decimal(en)? (is )?\d+)`,
-	// "el": `(\d+( |-)δεκαδικ(ό|ά)?)|(αριθμός (από )?δεκαδικ(ό|ά)? (είναι )?\d+)`,
-}
-
 // FindMathOperation finds a math operation in a string an returns it
 func FindMathOperation(entry string) string {
 	mathRegex := regexp.MustCompile(
@@ -2291,52 +2495,6 @@ func FindNumberOfDecimals(locale, entry string) int {
 
 	return decimalsInt
 }
-
-// Movie is the serializer from ../res/datasets/movies.csv
-type Movie struct {
-	Name   string
-	Genres []string
-	Rating float64
-}
-
-var (
-	// MoviesGenres initializes movies genres in different languages
-	MoviesGenres = map[string][]string{
-		"en": {
-			"Action", "Adventure", "Animation", "Children", "Comedy", "Crime", "Documentary", "Drama", "Fantasy",
-			"Film-Noir", "Horror", "Musical", "Mystery", "Romance", "Sci-Fi", "Thriller", "War", "Western",
-		},
-		// "de": {
-		// 	"Action", "Abenteuer", "Animation", "Kinder", "Komödie", "Verbrechen", "Dokumentarfilm", "Drama", "Fantasie",
-		// 	"Film-Noir", "Horror", "Musical", "Mystery", "Romance", "Sci-Fi", "Thriller", "Krieg", "Western",
-		// },
-		// "fr": {
-		// 	"Action", "Aventure", "Animation", "Enfant", "Comédie", "Crime", "Documentaire", "Drama", "Fantaisie",
-		// 	"Film-Noir", "Horreur", "Musical", "Mystère", "Romance", "Science-fiction", "Thriller", "Guerre", "Western",
-		// },
-		// "es": {
-		// 	"Acción", "Aventura", "Animación", "Infantil", "Comedia", "Crimen", "Documental", "Drama", "Fantasía",
-		// 	"Cine Negro", "Terror", "Musical", "Misterio", "Romance", "Ciencia Ficción", "Thriller", "Guerra", "Western",
-		// },
-		// "ca": {
-		// 	"Acció", "Aventura", "Animació", "Nen", "Comèdia", "Crim", "Documental", "Drama", "Fantasia",
-		// 	"Film-Noir", "Horror", "Musical", "Misteri", "Romanç", "Ciència-ficció", "Thriller", "War", "Western",
-		// },
-		// "it": {
-		// 	"Azione", "Avventura", "Animazione", "Bambini", "Commedia", "Poliziesco", "Documentario", "Dramma", "Fantasia",
-		// 	"Film-Noir", "Orrore", "Musical", "Mistero", "Romantico", "Fantascienza", "Giallo", "Guerra", "Western",
-		// },
-		// "nl": {
-		// 	"Actie", "Avontuur", "Animatie", "Kinderen", "Komedie", "Krimi", "Documentaire", "Drama", "Fantasie",
-		// 	"Film-Noir", "Horror", "Musical", "Mysterie", "Romantiek", "Sci-Fi", "Thriller", "Oorlog", "Western",
-		// },
-		// "el": {
-		// 	"Δράση", "Περιπέτεια", "Κινούμενα Σχέδια", "Παιδικά", "Κωμωδία", "Έγκλημα", "Ντοκιμαντέρ", "Δράμα", "Φαντασία",
-		// 	"Film-Noir", "Τρόμου", "Μουσική", "Μυστηρίου", "Ρομαντική", "Επιστημονική Φαντασία", "Θρίλλερ", "Πολέμου", "Western",
-		// },
-	}
-	movies = SerializeMovies()
-)
 
 // SerializeMovies retrieves the content of ../res/datasets/movies.csv and serialize it
 func SerializeMovies() (movies []Movie) {
@@ -2402,68 +2560,6 @@ func FindMoviesGenres(locale, content string) (output []string) {
 	return
 }
 
-// package language
-
-// import (
-// 	"strings"
-// )
-
-// SpotifyKeyword is the map for having the music keywords in different languages
-var SpotifyKeyword = map[string]SpotifyKeywords{
-	"en": {
-		Play: "play",
-		From: "from",
-		On:   "on",
-	},
-	// "de": {
-	// 	Play: "spiele",
-	// 	From: "von",
-	// 	On:   "auf",
-	// },
-	// "fr": {
-	// 	Play: "joue",
-	// 	From: "de",
-	// 	On:   "sur",
-	// },
-	// "es": {
-	// 	Play: "Juega",
-	// 	From: "de",
-	// 	On:   "en",
-	// },
-	// "ca": {
-	// 	Play: "Juga",
-	// 	From: "de",
-	// 	On:   "a",
-	// },
-	// "it": {
-	// 	Play: "suona",
-	// 	From: "da",
-	// 	On:   "a",
-	// },
-	// "tr": {
-	// 	Play: "Başlat",
-	// 	From: "dan",
-	// 	On:   "kadar",
-	// },
-	// "nl": {
-	// 	Play: "speel",
-	// 	From: "van",
-	// 	On:   "op",
-	// },
-	// "el": {
-	// 	Play: "αναπαραγωγή",
-	// 	From: "από",
-	// 	On:   "στο",
-	// },
-}
-
-// SpotifyKeywords are the keywords used to get music name
-type SpotifyKeywords struct {
-	Play string
-	From string
-	On   string
-}
-
 // SearchMusic returns a music title and artist found from the given sentence
 func SearchMusic(locale, sentence string) (music, artist string) {
 	words := strings.Split(sentence, " ")
@@ -2501,16 +2597,6 @@ func SearchMusic(locale, sentence string) (music, artist string) {
 	return strings.TrimSpace(music), strings.TrimSpace(artist)
 }
 
-// package language
-
-// import (
-// 	"strings"
-
-// 	"github.com/MehraB832/olivia_core/global"
-// )
-
-var names = SerializeNames()
-
 // SerializeNames retrieves all the names from ../res/datasets/names.txt and returns an array of names
 func SerializeNames() (names []string) {
 	namesFile := string(FetchFileContent("../res/datasets/names.txt"))
@@ -2532,10 +2618,6 @@ func FindName(sentence string) string {
 
 	return ""
 }
-
-// package language
-
-var decimal = "\\b\\d+([\\.,]\\d+)?"
 
 // FindRangeLimits finds the range for random numbers and returns a sorted integer array
 func FindRangeLimits(local, entry string) ([]int, error) {
@@ -2561,58 +2643,6 @@ func FindRangeLimits(local, entry string) ([]int, error) {
 
 	sort.Ints(limitArr)
 	return limitArr, nil
-}
-
-// package language
-
-// import (
-// 	"strings"
-// )
-
-// ReasonKeywords is for having the keywords in different languages
-var ReasonKeywords = map[string]ReasonKeyword{
-	"en": {
-		That: "that",
-		To:   "to",
-	},
-	// "de": {
-	// 	That: "das",
-	// 	To:   "zu",
-	// },
-	// "fr": {
-	// 	That: "que",
-	// 	To:   "de",
-	// },
-	// "es": {
-	// 	That: "que",
-	// 	To:   "para",
-	// },
-	// "ca": {
-	// 	That: "que",
-	// 	To:   "a",
-	// },
-	// "it": {
-	// 	That: "quel",
-	// 	To:   "per",
-	// },
-	// "tr": {
-	// 	That: "için",
-	// 	To:   "sebebiyle",
-	// },
-	// "nl": {
-	// 	That: "dat",
-	// 	To:   "naar",
-	// },
-	// "el": {
-	// 	That: "το οποίο",
-	// 	To:   "στο",
-	// },
-}
-
-// ReasonKeyword are used to find reason for different languages
-type ReasonKeyword struct {
-	That string
-	To   string
 }
 
 // SearchReason returns the reason found in the given sentence for the reminders,
@@ -2644,10 +2674,6 @@ func SearchReason(locale, sentence string) string {
 	return strings.Join(response, " ")
 }
 
-// package language
-
-// import "regexp"
-
 // SearchTokens searches 2 tokens in the given sentence and returns it.
 func SearchTokens(sentence string) []string {
 	// Search the token with a regex
@@ -2657,15 +2683,6 @@ func SearchTokens(sentence string) []string {
 }
 
 // package spotify
-
-var (
-	redirectURL = os.Getenv("REDIRECT_URL")
-	callbackURL = os.Getenv("CALLBACK_URL")
-
-	tokenChannel = make(chan *oauth2.Token)
-	state        = "abc123"
-	auth         spotify.Authenticator
-)
 
 func init() {
 	// Set default value of the callback url
@@ -2869,13 +2886,6 @@ func RemoveUserReminder(token string, index int) {
 	})
 }
 
-// package modules
-
-const adviceURL = "https://api.adviceslip.com/advice"
-
-// AdvicesTag is the intent tag for its module
-var AdvicesTag = "advices"
-
 // AdvicesReplacer replaces the pattern contained inside the response by a random advice from the api
 // specified by the adviceURL.
 // See modules/modules.go#Module.Replacer() for more details.
@@ -2902,18 +2912,6 @@ func AdvicesReplacer(locale, entry, response, _ string) (string, string) {
 	return AdvicesTag, fmt.Sprintf(response, advice)
 }
 
-// package modules
-
-// import (
-// 	"fmt"
-
-// 	"github.com/MehraB832/olivia_core/language"
-// 	"github.com/MehraB832/olivia_core/global"
-// )
-
-// AreaTag is the intent tag for its module
-var AreaTag = "area"
-
 // AreaReplacer replaces the pattern contained inside the response by the area of the country
 // specified in the message.
 // See modules/modules.go#Module.Replacer() for more details.
@@ -2928,23 +2926,6 @@ func AreaReplacer(locale, entry, response, _ string) (string, string) {
 
 	return AreaTag, fmt.Sprintf(response, ArticleCountries[locale](country.Name[locale]), country.Area)
 }
-
-// package modules
-
-// import (
-// 	"fmt"
-
-// 	"github.com/MehraB832/olivia_core/language"
-// 	"github.com/MehraB832/olivia_core/global"
-// )
-
-var (
-	// CapitalTag is the intent tag for its module
-	CapitalTag = "capital"
-	// ArticleCountries is the map of functions to find the article in front of a country
-	// in different languages
-	ArticleCountries = map[string]func(string) string{}
-)
 
 // CapitalReplacer replaces the pattern contained inside the response by the capital of the country
 // specified in the message.
@@ -2966,18 +2947,6 @@ func CapitalReplacer(locale, entry, response, _ string) (string, string) {
 
 	return CapitalTag, fmt.Sprintf(response, countryName, country.Capital)
 }
-
-// package modules
-
-// import (
-// 	"fmt"
-
-// 	"github.com/MehraB832/olivia_core/language"
-// 	"github.com/MehraB832/olivia_core/global"
-// )
-
-// CurrencyTag is the intent tag for its module
-var CurrencyTag = "currency"
 
 // CurrencyReplacer replaces the pattern contained inside the response by the currency of the country
 // specified in the message.
@@ -3026,11 +2995,6 @@ func JokesReplacer(locale, entry, response, _ string) (string, string) {
 	return JokesTag, fmt.Sprintf(response, jokeStr)
 }
 
-// package modules
-
-// MathTag is the intent tag for its module
-var MathTag = "math"
-
 // MathReplacer replaces the pattern contained inside the response by the answer of the math
 // expression specified in the message.
 // See modules/modules.go#Module.Replacer() for more details.
@@ -3065,7 +3029,6 @@ func MathReplacer(locale, entry, response, _ string) (string, string) {
 }
 
 // package modulesf
-
 
 // RegisterModulef registers a module into the map
 func RegisterModulef(locale string, module Modulef) {
@@ -3107,29 +3070,6 @@ func ReplaceContentf(locale, tag, entry, response, token string) (string, string
 
 	return tag, response
 }
-
-// package modules
-
-// import (
-// 	"fmt"
-// 	"math/rand"
-// 	"strings"
-
-// 	"github.com/MehraB832/olivia_core/global"
-
-// 	"github.com/MehraB832/olivia_core/language"
-// )
-
-var (
-	// GenresTag is the intent tag for its module
-	GenresTag = "movies genres"
-	// MoviesTag is the intent tag for its module
-	MoviesTag = "movies search"
-	// MoviesAlreadyTag is the intent tag for its module
-	MoviesAlreadyTag = "already seen movie"
-	// MoviesDataTag is the intent tag for its module
-	MoviesDataTag = "movies search from data"
-)
 
 // GenresReplacer gets the genre specified in the message and adds it to the user information.
 // See modules/modules.go#Module.Replacer() for more details.
@@ -3191,23 +3131,6 @@ func MovieSearchFromInformationReplacer(locale, _, response, token string) (stri
 	return MoviesDataTag, fmt.Sprintf(response, genresJoined, movie.Name, movie.Rating)
 }
 
-// package modules
-
-// import (
-// 	"fmt"
-// 	"strings"
-
-// 	"github.com/MehraB832/olivia_core/language"
-// 	"github.com/MehraB832/olivia_core/global"
-// )
-
-var (
-	// NameGetterTag is the intent tag for its module
-	NameGetterTag = "name getter"
-	// NameSetterTag is the intent tag for its module
-	NameSetterTag = "name setter"
-)
-
 // NameGetterReplacer replaces the pattern contained inside the response by the user's name.
 // See modules/modules.go#Module.Replacer() for more details.
 func NameGetterReplacer(locale, _, response, token string) (string, string) {
@@ -3244,20 +3167,6 @@ func NameSetterReplacer(locale, entry, response, token string) (string, string) 
 	return NameSetterTag, fmt.Sprintf(response, name)
 }
 
-// package modules
-
-// import (
-// 	"fmt"
-// 	"math/rand"
-// 	"strconv"
-
-// 	"github.com/MehraB832/olivia_core/language"
-// 	"github.com/MehraB832/olivia_core/global"
-// )
-
-// RandomTag is the intent tag for its module
-var RandomTag = "random number"
-
 // RandomNumberReplacer replaces the pattern contained inside the response by a random number.
 // See modules/modules.go#Module.Replacer() for more details.
 func RandomNumberReplacer(locale, entry, response, _ string) (string, string) {
@@ -3276,26 +3185,6 @@ func RandomNumberReplacer(locale, entry, response, _ string) (string, string) {
 	randNum := rand.Intn((max - min)) + min
 	return RandomTag, fmt.Sprintf(response, strconv.Itoa(randNum))
 }
-
-// package modules
-
-// import (
-// 	"fmt"
-// 	"strings"
-
-// 	"github.com/MehraB832/olivia_core/language"
-
-// 	"github.com/MehraB832/olivia_core/global"
-
-// 	"github.com/MehraB832/olivia_core/language/date"
-// )
-
-var (
-	// ReminderSetterTag is the intent tag for its module
-	ReminderSetterTag = "reminder setter"
-	// ReminderGetterTag is the intent tag for its module
-	ReminderGetterTag = "reminder getter"
-)
 
 // ReminderSetterReplacer replaces the pattern contained inside the response by the date of the reminder
 // and its reason.
@@ -3345,27 +3234,6 @@ func ReminderGetterReplacer(locale, _, response, token string) (string, string) 
 
 	return ReminderGetterTag, fmt.Sprintf(response, strings.Join(formattedReminders, " "))
 }
-
-// package modules
-
-// import (
-// 	"fmt"
-// 	"strings"
-
-// 	"github.com/MehraB832/olivia_core/global"
-
-// 	"github.com/MehraB832/olivia_core/language"
-// 	"github.com/zmb3/spotify"
-
-// 	spotifyModule "github.com/MehraB832/olivia_core/modules/spotify"
-// )
-
-var (
-	// SpotifySetterTag is the intent tag for its module
-	SpotifySetterTag = "spotify setter"
-	// SpotifyPlayerTag is the intent tag for its module
-	SpotifyPlayerTag = "spotify player"
-)
 
 // SpotifySetterReplacer gets the tokens in the user entry and save them into the client's information.
 // See modules/modules.go#Module.Replacer() for more details.
