@@ -1,11 +1,15 @@
 // =================================================================
 // // // // #MRb // // Oct 4 2024 .. .. //
+// Email: s.mrb.s@hotmail.com, mehrabshafae@gmail.com //
+// :D xD -_- ?
+//
+// =================================================================
 package olivia
 
 // =================================================================
 
 // =================================================================
-// imports
+// Imports
 import (
 	"encoding/json"
 	"fmt"
@@ -50,16 +54,15 @@ var cachedDataStore = map[string][]DataPacket{}
 var cachedUserData = map[string]UserProfile{}
 
 var (
-	// neuralNetworks -> globalNeuralNetworks
+
 	// globalNeuralNetworks is a map to hold the neural network instances
 	globalNeuralNetworks map[string]Network
 
-	// cache -> cacheInstance
 	// cacheInstance initializes the cache with a 5-minute lifetime
 	cacheInstance = gocache.New(5*time.Minute, 5*time.Minute)
 )
 
-var websocketUpgrader = websocket.Upgrader{ // upgrader -> websocketUpgrader
+var websocketUpgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
@@ -492,45 +495,44 @@ const DontUnderstand = "don't understand"
 // =================================================================
 // Types
 type DataPacket struct {
-	// Tag -> Label
 	Label string `json:"tag"`
-	// Messages -> Content
+
 	Content []string `json:"messages"`
 }
 
 type UserProfile struct {
-	FullName         string         `json:"name"`            // Name -> FullName
-	GenrePreferences []string       `json:"movie_genres"`    // MovieGenres -> GenrePreferences
-	DislikedMovies   []string       `json:"movie_blacklist"` // MovieBlacklist -> DislikedMovies
-	ImportantDates   []UserReminder `json:"reminders"`       // Reminders -> ImportantDates
-	StreamingToken   *oauth2.Token  `json:"spotify_token"`   // SpotifyToken -> StreamingToken
-	StreamingID      string         `json:"spotify_id"`      // SpotifyID -> StreamingID
-	StreamingSecret  string         `json:"spotify_secret"`  // SpotifySecret -> StreamingSecret
+	FullName         string         `json:"name"`
+	GenrePreferences []string       `json:"movie_genres"`
+	DislikedMovies   []string       `json:"movie_blacklist"`
+	ImportantDates   []UserReminder `json:"reminders"`
+	StreamingToken   *oauth2.Token  `json:"spotify_token"`
+	StreamingID      string         `json:"spotify_id"`
+	StreamingSecret  string         `json:"spotify_secret"`
 }
 
 type UserReminder struct {
-	ReminderDetails string `json:"reason"` // Reason -> ReminderDetails
-	ReminderDate    string `json:"date"`   // Date -> ReminderDate
+	ReminderDetails string `json:"reason"`
+	ReminderDate    string `json:"date"`
 }
 
 type DashboardData struct {
-	NetworkLayers NetworkLayersData `json:"layers"`   // Layers -> NetworkLayers
-	TrainingInfo  TrainingInfoData  `json:"training"` // Training -> TrainingInfo
+	NetworkLayers NetworkLayersData `json:"layers"`
+	TrainingInfo  TrainingInfoData  `json:"training"`
 }
 
 type NetworkLayersData struct {
-	InputCount  int `json:"input"`  // InputNodes -> InputCount
-	HiddenCount int `json:"hidden"` // HiddenLayers -> HiddenCount
-	OutputCount int `json:"output"` // OutputNodes -> OutputCount
+	InputCount  int `json:"input"`
+	HiddenCount int `json:"hidden"`
+	OutputCount int `json:"output"`
 }
 
 type TrainingInfoData struct {
-	LearningRate float64   `json:"rate"`   // Rate -> LearningRate
-	ErrorMetrics []float64 `json:"errors"` // Errors -> ErrorMetrics
-	TrainingTime float64   `json:"time"`   // Time -> TrainingTime
+	LearningRate float64   `json:"rate"`
+	ErrorMetrics []float64 `json:"errors"`
+	TrainingTime float64   `json:"time"`
 }
 
-type clientRequestMessage struct { // RequestMessage -> clientRequestMessage
+type clientRequestMessage struct {
 	Type        int         `json:"type"` // 0 for handshakes and 1 for messages
 	Content     string      `json:"content"`
 	Token       string      `json:"user_token"`
@@ -538,13 +540,13 @@ type clientRequestMessage struct { // RequestMessage -> clientRequestMessage
 	Information UserProfile `json:"information"`
 }
 
-type serverResponseMessage struct { // ResponseMessage -> serverResponseMessage
+type serverResponseMessage struct {
 	Content     string      `json:"content"`
 	Tag         string      `json:"tag"`
 	Information UserProfile `json:"information"`
 }
 
-type LayerDerivative struct { // Derivative -> LayerDerivative
+type LayerDerivative struct {
 	Delta      Matrix
 	Adjustment Matrix
 }
@@ -741,8 +743,8 @@ func SelectRandomMessage(region, identifier string) string {
 	return ""
 }
 
-func SliceIncludes(collection []string, searchTerm string) bool { // slice -> collection, text -> searchTerm
-	for _, element := range collection { // item -> element
+func SliceIncludes(collection []string, searchTerm string) bool {
+	for _, element := range collection {
 		if element == searchTerm {
 			return true
 		}
@@ -751,13 +753,13 @@ func SliceIncludes(collection []string, searchTerm string) bool { // slice -> co
 	return false
 }
 
-func SliceDifference(collection1 []string, collection2 []string) (difference []string) { // slice -> collection1, slice2 -> collection2
+func SliceDifference(collection1 []string, collection2 []string) (difference []string) {
 	// Loop two times, first to find collection1 strings not in collection2,
 	// second loop to find collection2 strings not in collection1
 	for i := 0; i < 2; i++ {
-		for _, element1 := range collection1 { // s1 -> element1
+		for _, element1 := range collection1 {
 			found := false
-			for _, element2 := range collection2 { // s2 -> element2
+			for _, element2 := range collection2 {
 				if element1 == element2 {
 					found = true
 					break
@@ -777,8 +779,8 @@ func SliceDifference(collection1 []string, collection2 []string) (difference []s
 	return difference
 }
 
-func SliceIndex(collection []string, searchTerm string) int { // slice -> collection, text -> searchTerm
-	for i, element := range collection { // item -> element
+func SliceIndex(collection []string, searchTerm string) int {
+	for i, element := range collection {
 		if element == searchTerm {
 			return i
 		}
@@ -787,15 +789,15 @@ func SliceIndex(collection []string, searchTerm string) int { // slice -> collec
 	return 0
 }
 
-func UpdateUserProfile(authToken string, profileUpdater func(UserProfile) UserProfile) { // token -> authToken, changer -> profileUpdater
+func UpdateUserProfile(authToken string, profileUpdater func(UserProfile) UserProfile) {
 	cachedUserData[authToken] = profileUpdater(cachedUserData[authToken])
 }
 
-func StoreUserProfile(authToken string, profile UserProfile) { // token -> authToken, information -> profile
+func StoreUserProfile(authToken string, profile UserProfile) {
 	cachedUserData[authToken] = profile
 }
 
-func RetrieveUserProfile(authToken string) UserProfile { // token -> authToken
+func RetrieveUserProfile(authToken string) UserProfile {
 	return cachedUserData[authToken]
 }
 
@@ -845,42 +847,42 @@ func CreateNeuralNetwork(locale string, ignoreTrainingFile bool) (neuralNetwork 
 	return
 }
 
-func EncodeDashboardData(w http.ResponseWriter, r *http.Request) { // GetDashboardData -> EncodeDashboardData
+func EncodeDashboardData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	params := mux.Vars(r) // data -> params
+	params := mux.Vars(r)
 
-	dashboardData := DashboardData{ // dashboard -> dashboardData
-		NetworkLayers: GetNetworkLayers(params["locale"]), // Layers -> NetworkLayers
-		TrainingInfo:  GetTrainingInfo(params["locale"]),  // Training -> TrainingInfo
+	dashboardData := DashboardData{
+		NetworkLayers: GetNetworkLayers(params["locale"]),
+		TrainingInfo:  GetTrainingInfo(params["locale"]),
 	}
 
-	if err := json.NewEncoder(w).Encode(dashboardData); err != nil { // err := json.NewEncoder(w).Encode(dashboard) -> if err := json.NewEncoder(w).Encode(dashboardData)
+	if err := json.NewEncoder(w).Encode(dashboardData); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func GetNetworkLayers(locale string) NetworkLayersData { // GetLayers -> GetNetworkLayers
-	return NetworkLayersData{ // Layers -> NetworkLayersData
+func GetNetworkLayers(locale string) NetworkLayersData {
+	return NetworkLayersData{
 		// Get the number of rows of the first layer to get the count of input nodes
-		InputCount: Rows(globalNeuralNetworks[locale].Layers[0]), // InputNodes -> InputCount
+		InputCount: Rows(globalNeuralNetworks[locale].Layers[0]),
 		// Get the number of hidden layers by removing the count of the input and output layers
-		HiddenCount: len(globalNeuralNetworks[locale].Layers) - 2, // HiddenLayers -> HiddenCount
+		HiddenCount: len(globalNeuralNetworks[locale].Layers) - 2,
 		// Get the number of rows of the latest layer to get the count of output nodes
-		OutputCount: Columns(globalNeuralNetworks[locale].Output), // OutputNodes -> OutputCount
+		OutputCount: Columns(globalNeuralNetworks[locale].Output),
 	}
 }
 
-func GetTrainingInfo(locale string) TrainingInfoData { // GetTraining -> GetTrainingInfo
+func GetTrainingInfo(locale string) TrainingInfoData {
 	// Retrieve the information from the neural network
-	return TrainingInfoData{ // Training -> TrainingInfoData
-		LearningRate: globalNeuralNetworks[locale].Rate,   // Rate -> LearningRate
-		ErrorMetrics: globalNeuralNetworks[locale].Errors, // Errors -> ErrorMetrics
-		TrainingTime: globalNeuralNetworks[locale].Time,   // Time -> TrainingTime
+	return TrainingInfoData{
+		LearningRate: globalNeuralNetworks[locale].Rate,
+		ErrorMetrics: globalNeuralNetworks[locale].Errors,
+		TrainingTime: globalNeuralNetworks[locale].Time,
 	}
 }
 
-func StartServer(neuralNetworkInstances map[string]Network, serverPort string) { // Serve -> StartServer, _neuralNetworks -> neuralNetworkInstances, port -> serverPort
+func StartServer(neuralNetworkInstances map[string]Network, serverPort string) {
 	// Set the current global network as a global variable
 	globalNeuralNetworks = neuralNetworkInstances
 
@@ -893,20 +895,20 @@ func StartServer(neuralNetworkInstances map[string]Network, serverPort string) {
 	router.HandleFunc("/api/{locale}/dashboard", EncodeDashboardData).Methods("GET")
 	router.HandleFunc("/api/{locale}/intent", CreateIntent).Methods("POST")
 	router.HandleFunc("/api/{locale}/intent", DeleteIntent).Methods("DELETE", "OPTIONS")
-	router.HandleFunc("/api/{locale}/train", TrainNeuralNetwork).Methods("POST") // Train -> TrainNeuralNetwork
+	router.HandleFunc("/api/{locale}/train", TrainNeuralNetwork).Methods("POST")
 	router.HandleFunc("/api/{locale}/intents", GetIntents).Methods("GET")
 	router.HandleFunc("/api/coverage", GetCoverage).Methods("GET")
 
 	magentaColor := color.FgMagenta.Render
-	fmt.Printf("\nServer listening on the port %s...\n", magentaColor(serverPort)) // magenta -> magentaColor
+	fmt.Printf("\nServer listening on the port %s...\n", magentaColor(serverPort))
 
 	// Serves the chat
-	if err := http.ListenAndServe(":"+serverPort, router); err != nil { // err := http.ListenAndServe(":"+port, router) -> if err := http.ListenAndServe(":"+serverPort, router)
+	if err := http.ListenAndServe(":"+serverPort, router); err != nil {
 		panic(err)
 	}
 }
 
-func TrainNeuralNetwork(w http.ResponseWriter, r *http.Request) { // Train -> TrainNeuralNetwork
+func TrainNeuralNetwork(w http.ResponseWriter, r *http.Request) {
 	// Checks if the token present in the headers is the right one
 	token := r.Header.Get("Olivia-Token")
 	if !ChecksToken(token) {
@@ -917,15 +919,15 @@ func TrainNeuralNetwork(w http.ResponseWriter, r *http.Request) { // Train -> Tr
 	}
 
 	magentaColor := color.FgMagenta.Render
-	fmt.Printf("\nRe-training the %s..\n", magentaColor("neural network")) // magenta -> magentaColor
+	fmt.Printf("\nRe-training the %s..\n", magentaColor("neural network"))
 
-	for locale := range globalNeuralNetworks { // neuralNetworks -> globalNeuralNetworks
+	for locale := range globalNeuralNetworks {
 		globalNeuralNetworks[locale] = CreateNeuralNetwork(locale, true)
 	}
 }
 
-func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) { // SocketHandle -> HandleWebSocketConnection
-	conn, _ := websocketUpgrader.Upgrade(w, r, nil) // upgrader -> websocketUpgrader
+func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
+	conn, _ := websocketUpgrader.Upgrade(w, r, nil)
 	fmt.Println(color.FgGreen.Render("A new connection has been opened"))
 
 	for {
@@ -936,7 +938,7 @@ func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) { // Sock
 		}
 
 		// Unmarshal the json content of the message
-		var request clientRequestMessage // RequestMessage -> clientRequestMessage
+		var request clientRequestMessage
 		if err = json.Unmarshal(msg, &request); err != nil {
 			continue
 		}
@@ -953,7 +955,7 @@ func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) { // Sock
 			message := GetMessage()
 			if message != "" {
 				// Generate the response to send to the user
-				response := serverResponseMessage{ // ResponseMessage -> serverResponseMessage
+				response := serverResponseMessage{
 					Content:     message,
 					Tag:         "start module",
 					Information: RetrieveUserProfile(request.Token),
@@ -973,14 +975,14 @@ func HandleWebSocketConnection(w http.ResponseWriter, r *http.Request) { // Sock
 		}
 
 		// Write message back to browser
-		response := generateReply(request) // Reply -> generateReply
+		response := generateReply(request)
 		if err = conn.WriteMessage(msgType, response); err != nil {
 			continue
 		}
 	}
 }
 
-func generateReply(request clientRequestMessage) []byte { // Reply -> generateReply, RequestMessage -> clientRequestMessage
+func generateReply(request clientRequestMessage) []byte {
 	var responseSentence, responseTag string
 
 	// Send a message from ../res/datasets/messages.json if it is too long
@@ -1000,7 +1002,7 @@ func generateReply(request clientRequestMessage) []byte { // Reply -> generateRe
 	}
 
 	// Marshall the response in json
-	response := serverResponseMessage{ // ResponseMessage -> serverResponseMessage
+	response := serverResponseMessage{
 		Content:     responseSentence,
 		Tag:         responseTag,
 		Information: RetrieveUserProfile(request.Token),
@@ -1014,7 +1016,7 @@ func generateReply(request clientRequestMessage) []byte { // Reply -> generateRe
 	return bytes
 }
 
-func (network Network) CalculateFinalLayerDerivatives() LayerDerivative { // ComputeLastLayerDerivatives -> CalculateFinalLayerDerivatives
+func (network Network) CalculateFinalLayerDerivatives() LayerDerivative {
 	l := len(network.Layers) - 1
 	lastLayer := network.Layers[l]
 
@@ -1029,13 +1031,13 @@ func (network Network) CalculateFinalLayerDerivatives() LayerDerivative { // Com
 	)
 	weights := DotProduct(Transpose(network.Layers[l-1]), delta)
 
-	return LayerDerivative{ // Derivative -> LayerDerivative
+	return LayerDerivative{
 		Delta:      delta,
 		Adjustment: weights,
 	}
 }
 
-func (network Network) CalculateLayerDerivatives(i int, derivatives []LayerDerivative) LayerDerivative { // ComputeDerivatives -> CalculateLayerDerivatives, Derivative -> LayerDerivative
+func (network Network) CalculateLayerDerivatives(i int, derivatives []LayerDerivative) LayerDerivative {
 	l := len(network.Layers) - 2 - i
 
 	// Compute derivative for the layer of weights and biases
@@ -1051,13 +1053,13 @@ func (network Network) CalculateLayerDerivatives(i int, derivatives []LayerDeriv
 	)
 	weights := DotProduct(Transpose(network.Layers[l-1]), delta)
 
-	return LayerDerivative{ // Derivative -> LayerDerivative
+	return LayerDerivative{
 		Delta:      delta,
 		Adjustment: weights,
 	}
 }
 
-func (network Network) ApplyAdjustments(derivatives []LayerDerivative) { // Adjust -> ApplyAdjustments, Derivative -> LayerDerivative
+func (network Network) ApplyAdjustments(derivatives []LayerDerivative) {
 	for i, derivative := range derivatives {
 		l := len(derivatives) - i
 
